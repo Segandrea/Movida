@@ -46,11 +46,6 @@ class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     @Override
-    public boolean empty() {
-        return 0 == this.size;
-    }
-
-    @Override
     public boolean has(final K key) {
         assert null != key;
 

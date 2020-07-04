@@ -28,13 +28,15 @@
 package movida.dicarlosegantini.map;
 
 public interface IMap<K, V> {
-    V add(K key, V value);
-    V get(K key);
-    V del(K key);
-    boolean has(K key);
+    V add(final K key, final V value);
+    V get(final K key);
+    V del(final K key);
+    boolean has(final K key);
 
     int capacity();
     int size();
 
-    boolean empty();
+    default boolean empty() {
+        return 0 == this.size();
+    }
 }

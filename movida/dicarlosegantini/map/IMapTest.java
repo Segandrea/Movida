@@ -27,17 +27,88 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class IMapTest {
     @org.junit.jupiter.api.Test
     void testHashIndirizzamentoAperto() {
+        this.testAdd(new HashIndirizzamentoAperto<>());
+        this.testDel(new HashIndirizzamentoAperto<>());
         this.test(new HashIndirizzamentoAperto<>());
     }
 
     @org.junit.jupiter.api.Test
     void testArrayOrdinato() {
-        // TODO
+        this.testAdd(new ArrayOrdinato<>());
+        this.testDel(new ArrayOrdinato<>());
+        this.test(new ArrayOrdinato<>());
+    }
+
+    void testDel(IMap<Integer, Integer> sut) {
+        final int SIZE = 16;
+        for (int i = 0; i < SIZE; ++i) {
+            assertNull(sut.add(i, i));
+            assertEquals(i + 1, sut.size());
+            assertTrue(sut.has(i));
+            assertEquals(i, sut.get(i));
+        }
+
+        var keys = new ArrayList<>();
+        for (int i = 0; i < SIZE; ++i) {
+            keys.add(i);
+        }
+
+        for (int i = 0; i < SIZE; ++i) {
+            Integer k = -1;
+
+            switch (i % 3) {
+                case 0:
+                    k = (Integer) keys.remove(0);
+                    break;
+                case 1:
+                    k = (Integer) keys.remove(keys.size() / 2);
+                    break;
+                case 2:
+                    k = (Integer) keys.remove(keys.size() - 1);
+                    break;
+                default:
+                    fail();
+            }
+
+            assertEquals(k, sut.del(k));
+            assertEquals(keys.size(), sut.size());
+            assertFalse(sut.has(k));
+            assertNull(sut.get(k));
+            assertNull(sut.del(k));
+            assertEquals(keys.size(), sut.size());
+            assertFalse(sut.has(k));
+        }
+    }
+
+    void testAdd(IMap<Integer, Integer> sut) {
+        for (int i = 0; i < 16; ++i) {
+            assertNull(sut.add(i, i));
+            assertEquals(i + 1, sut.size());
+            assertTrue(sut.has(i));
+            assertEquals(i, sut.get(i));
+        }
+
+        assertEquals(0, sut.add(0, -1));
+        assertEquals(16, sut.size());
+        assertTrue(sut.has(0));
+        assertEquals(-1, sut.get(0));
+
+        assertEquals(7, sut.add(7, -1));
+        assertEquals(16, sut.size());
+        assertTrue(sut.has(7));
+        assertEquals(-1, sut.get(7));
+
+        assertEquals(15, sut.add(15, -1));
+        assertEquals(16, sut.size());
+        assertTrue(sut.has(15));
+        assertEquals(-1, sut.get(15));
     }
 
     void test(IMap<String, Integer> sut) {
@@ -80,5 +151,4 @@ class IMapTest {
         assertTrue(sut.has("k1"));
         assertEquals(99, sut.get("k1"));
     }
-
 }
