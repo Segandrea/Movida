@@ -28,6 +28,12 @@
 package movida.dicarlosegantini.map;
 
 class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
+    @SuppressWarnings("unchecked")
+    private final K DELETED = (K) new Object();
+    private V[] values;
+    private K[] keys;
+    private int size;
+
     @SuppressWarnings({"unchecked"})
     public HashIndirizzamentoAperto() {
         this.size = 0;
@@ -159,10 +165,4 @@ class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
 
         return null;
     }
-
-    private K[] keys;
-    private V[] values;
-    @SuppressWarnings("unchecked")
-    private final K DELETED = (K) new Object();
-    private int size;
 }
