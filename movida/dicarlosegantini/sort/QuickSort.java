@@ -25,7 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package movida.dicarlosegantini.map;
+package movida.dicarlosegantini.sort;
 
 import java.util.Random;
 

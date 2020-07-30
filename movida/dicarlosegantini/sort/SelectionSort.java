@@ -25,8 +25,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package movida.dicarlosegantini.map;
+package movida.dicarlosegantini.sort;
 
-public interface ISort {
-    <T extends Comparable<T>> void sort(T[] arr);
+public class SelectionSort implements ISort {
+    @Override
+    public <T extends Comparable<T>> void sort(T[] arr) {
+        for (int lastIndex = 0; lastIndex < arr.length; ++lastIndex) {
+            int minIndex = lastIndex;
+
+            for (int i = lastIndex + 1; i < arr.length; ++i) {
+                if (arr[i].compareTo(arr[minIndex]) < 0) {
+                    minIndex = i;
+                }
+            }
+
+            final var tmp = arr[lastIndex];
+            arr[lastIndex] = arr[minIndex];
+            arr[minIndex] = tmp;
+        }
+    }
 }

@@ -25,7 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package movida.dicarlosegantini.map;
+package movida.dicarlosegantini.sort;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
