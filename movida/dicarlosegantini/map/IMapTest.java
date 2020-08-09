@@ -36,14 +36,20 @@ class IMapTest {
     void testHashIndirizzamentoAperto() {
         this.testAdd(new HashIndirizzamentoAperto<>());
         this.testDel(new HashIndirizzamentoAperto<>());
-        this.test(new HashIndirizzamentoAperto<>());
+        this.testBasicOp(new HashIndirizzamentoAperto<>());
+        this.testStream(new HashIndirizzamentoAperto<>());
+        this.testToHashIndirizzamentoAperto(new HashIndirizzamentoAperto<>());
+        this.testToHashIndirizzamentoAperto(new ArrayOrdinato<>());
     }
 
     @org.junit.jupiter.api.Test
     void testArrayOrdinato() {
         this.testAdd(new ArrayOrdinato<>());
         this.testDel(new ArrayOrdinato<>());
-        this.test(new ArrayOrdinato<>());
+        this.testBasicOp(new ArrayOrdinato<>());
+        this.testStream(new ArrayOrdinato<>());
+        this.testToArrayOrdinato(new ArrayOrdinato<>());
+        this.testToArrayOrdinato(new HashIndirizzamentoAperto<>());
     }
 
     void testDel(IMap<Integer, Integer> sut) {
@@ -111,7 +117,7 @@ class IMapTest {
         assertEquals(-1, sut.get(15));
     }
 
-    void test(IMap<String, Integer> sut) {
+    void testBasicOp(IMap<String, Integer> sut) {
         assertTrue(sut.empty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
@@ -150,5 +156,63 @@ class IMapTest {
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k1"));
         assertEquals(99, sut.get("k1"));
+    }
+
+    void testStream(IMap<Integer, Integer> sut) {
+        assertTrue(sut.empty());
+        assertEquals(0, sut.stream().count());
+        for (int i = 1; i < 10; ++i) {
+            sut.add(i, i * 10);
+            assertEquals(
+                    sut.size(),
+                    sut.stream()
+                            .filter(e -> e.value == e.key * 10)
+                            .count()
+            );
+        }
+    }
+
+    void testToHashIndirizzamentoAperto(IMap<Integer, Integer> source) {
+        var sut = HashIndirizzamentoAperto.from(source);
+
+        assertTrue(sut.empty());
+        assertEquals(0, sut.size());
+        assertEquals(0, sut.capacity());
+        for (int i = 1; i < 10; ++i) {
+            source.add(i, i * 10);
+        }
+
+        sut = HashIndirizzamentoAperto.from(source);
+        assertFalse(sut.empty());
+        assertEquals(9, sut.size());
+        assertTrue(sut.capacity() >= sut.size());
+        assertEquals(
+                sut.size(),
+                sut.stream()
+                        .filter(e -> e.value == e.key * 10)
+                        .count()
+        );
+    }
+
+    void testToArrayOrdinato(IMap<Integer, Integer> source) {
+        var sut = ArrayOrdinato.from(source);
+
+        assertTrue(sut.empty());
+        assertEquals(0, sut.size());
+        assertEquals(0, sut.capacity());
+        for (int i = 1; i < 10; ++i) {
+            source.add(i, i * 10);
+        }
+
+        sut = ArrayOrdinato.from(source);
+        assertFalse(sut.empty());
+        assertEquals(9, sut.size());
+        assertTrue(sut.capacity() >= sut.size());
+        assertEquals(
+                sut.size(),
+                sut.stream()
+                        .filter(e -> e.value == e.key * 10)
+                        .count()
+        );
     }
 }

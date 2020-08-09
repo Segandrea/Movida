@@ -27,6 +27,9 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     private V[] values;
     private K[] keys;
@@ -39,11 +42,11 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
         this.values = (V[]) new Object[0];
     }
 
-    // TODO: remove me
-    public ArrayOrdinato(K[] keys) {
-        this.size = keys.length;
-        this.keys = keys;
-        this.values = null;
+    public static <K1 extends Comparable<K1>, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
+        var newInstance = new ArrayOrdinato<K1, V1>();
+        newInstance.reserve(map.size());
+        map.stream().forEach(e -> newInstance.add(e.key, e.value));
+        return newInstance;
     }
 
     @Override
@@ -112,8 +115,13 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
         return this.size;
     }
 
-    @SuppressWarnings({"unchecked", "SameParameterValue"})
-    private void reserve(final int numOfItems) {
+    @Override
+    public Stream<Entry<K, V>> stream() {
+        return IntStream.range(0, this.size).mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public void reserve(final int numOfItems) {
         if ((this.size + numOfItems) <= this.keys.length) {
             return;
         }

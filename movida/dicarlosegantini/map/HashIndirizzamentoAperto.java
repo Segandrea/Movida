@@ -27,7 +27,10 @@
 
 package movida.dicarlosegantini.map;
 
-class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
     private V[] values;
@@ -39,6 +42,13 @@ class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         this.size = 0;
         this.keys = (K[]) new Object[0];
         this.values = (V[]) new Object[0];
+    }
+
+    public static <K1, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
+        var newInstance = new HashIndirizzamentoAperto<K1, V1>();
+        newInstance.reserve(map.size());
+        map.stream().forEach(e -> newInstance.add(e.key, e.value));
+        return newInstance;
     }
 
     @Override
@@ -90,8 +100,17 @@ class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return (index >= 0) ? this.values[index] : null;
     }
 
-    @SuppressWarnings({"unchecked", "SameParameterValue"})
-    private void reserve(final int numOfItems) {
+    @Override
+    public Stream<Entry<K, V>> stream() {
+        return IntStream
+                .range(0, this.capacity())
+                .filter(i -> this.keys[i] != null)
+                .limit(this.size)
+                .mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public void reserve(final int numOfItems) {
         final float capacity = Math.max(this.capacity(), 1);
         final var loadFactor = (this.size + numOfItems) / capacity;
 

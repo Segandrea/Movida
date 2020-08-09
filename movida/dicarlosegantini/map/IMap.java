@@ -27,13 +27,23 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.stream.Stream;
+
 public interface IMap<K, V> {
     V add(final K key, final V value);
+
     V get(final K key);
+
     V del(final K key);
+
     boolean has(final K key);
 
+    Stream<Entry<K, V>> stream();
+
+    void reserve(final int numOfItems);
+
     int capacity();
+
     int size();
 
     default boolean empty() {
