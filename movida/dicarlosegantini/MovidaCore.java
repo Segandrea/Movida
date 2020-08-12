@@ -35,11 +35,9 @@ import movida.dicarlosegantini.sort.ISort;
 import movida.dicarlosegantini.sort.QuickSort;
 import movida.dicarlosegantini.sort.SelectionSort;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class MovidaCore implements IMovidaConfig {
     private final MapImplementation mapImplementation;
@@ -97,6 +95,51 @@ public class MovidaCore implements IMovidaConfig {
         return new HashIndirizzamentoAperto<>();
     }
 
+    private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
+        writer.append("title: ");
+        writer.append(movie.getTitle());
+        writer.newLine();
+
+        writer.append("year: ");
+        writer.append(movie.getYear().toString());
+        writer.newLine();
+
+        writer.append("director: ");
+        writer.append(movie.getDirector().getName());
+        writer.newLine();
+
+        writer.append("cast: ");
+        writer.append(
+                Arrays.stream(movie.getCast())
+                        .map(Person::getName)
+                        .collect(Collectors.joining(", "))
+        );
+        writer.newLine();
+
+        writer.append("votes: ");
+        writer.append(movie.getVotes().toString());
+        writer.newLine();
+
+        writer.newLine();
+    }
+
+    private void loadMovie(final IMap<String, String> movieData) {
+        final var title = movieData.get("title");
+        final var year = Integer.parseInt(movieData.get("year"));
+        final var director = new Person(movieData.get("director"));
+        final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
+                .map(Person::new)
+                .toArray(Person[]::new);
+        final var votes = Integer.parseInt(movieData.get("votes"));
+
+        final var movie = new Movie(title, year, votes, cast, director);
+        this.movies.add(movie.getTitle(), movie);
+        this.people.add(movie.getDirector().getName(), movie.getDirector());
+        for (var p : movie.getCast()) {
+            this.people.add(p.getName(), p);
+        }
+    }
+
     public void loadFromFile(File f) throws IOException {
         var reader = new BufferedReader(new FileReader(f));
         IMap<String, String> movieData = this.instanceCurrentMap();
@@ -105,20 +148,7 @@ public class MovidaCore implements IMovidaConfig {
             line = line.strip().toLowerCase();
 
             if (line.isEmpty()) {
-                final var title = movieData.get("title");
-                final var year = Integer.parseInt(movieData.get("year"));
-                final var director = new Person(movieData.get("director"));
-                final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
-                        .map(Person::new)
-                        .toArray();
-                final var votes = Integer.parseInt(movieData.get("votes"));
-
-                this.movies.add(title, new Movie(title, year, votes, cast, director));
-                this.people.add(director.getName(), director);
-                for (var p : cast) {
-                    this.people.add(p.getName(), p);
-                }
-
+                this.loadMovie(movieData);
                 movieData.clear();
                 continue;
             }
@@ -140,5 +170,21 @@ public class MovidaCore implements IMovidaConfig {
                     throw new MovidaFileException(/*parse error: unexpected key*/);
             }
         }
+
+        if (!movieData.empty()) {
+            this.loadMovie(movieData);
+        }
+    }
+
+    public void saveToFile(File f) throws IOException {
+        var writer = new BufferedWriter(new FileWriter(f));
+        var iterator = this.movies.stream().iterator();
+
+        while (iterator.hasNext()) {
+            final var entry = iterator.next();
+            saveMovieToFile(writer, entry.value);
+        }
+
+        writer.flush();
     }
 }
