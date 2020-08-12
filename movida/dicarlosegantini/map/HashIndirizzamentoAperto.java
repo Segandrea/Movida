@@ -172,9 +172,9 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         assert null != key;
         assert null != value;
 
-        final var hash = key.hashCode();
+        final var hash = ((long) Math.abs(key.hashCode())) + ((key.hashCode() < 0) ? (long) (Integer.MAX_VALUE) : 0L);
         for (int i = 0; i < this.capacity(); ++i) {
-            final var index = (hash + i) % this.capacity();
+            final var index = (int) ((hash + i) % this.capacity());
             final var entry = this.keys[index];
 
             if (null == entry || this.DELETED == entry) {
