@@ -27,6 +27,7 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -54,6 +55,12 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     @Override
     public int size() {
         return this.size;
+    }
+
+    @Override
+    public void clear() {
+        Arrays.fill(this.keys, null);
+        this.size = 0;
     }
 
     @Override

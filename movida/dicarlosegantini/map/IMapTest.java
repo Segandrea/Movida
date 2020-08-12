@@ -38,6 +38,7 @@ class IMapTest {
         this.testDel(new HashIndirizzamentoAperto<>());
         this.testBasicOp(new HashIndirizzamentoAperto<>());
         this.testStream(new HashIndirizzamentoAperto<>());
+        this.testClear(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new ArrayOrdinato<>());
     }
@@ -48,6 +49,7 @@ class IMapTest {
         this.testDel(new ArrayOrdinato<>());
         this.testBasicOp(new ArrayOrdinato<>());
         this.testStream(new ArrayOrdinato<>());
+        this.testClear(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new HashIndirizzamentoAperto<>());
     }
@@ -212,6 +214,38 @@ class IMapTest {
                 sut.size(),
                 sut.stream()
                         .filter(e -> e.value == e.key * 10)
+                        .count()
+        );
+    }
+
+    void testClear(IMap<Integer, Integer> sut) {
+        assertTrue(sut.empty());
+        for (int i = 1; i < 10; ++i) {
+            sut.add(i, i * 10);
+        }
+        assertFalse(sut.empty());
+        assertEquals(9, sut.size());
+
+        sut.clear();
+        assertTrue(sut.empty());
+        assertEquals(0, sut.size());
+        assertEquals(0, sut.stream().count());
+
+        for (int i = 1; i < 10; ++i) {
+            assertFalse(sut.has(i));
+            assertNull(sut.get(i));
+        }
+
+        for (int i = 1; i < 10; ++i) {
+            sut.add(i, i * 100);
+        }
+        assertFalse(sut.empty());
+        assertEquals(9, sut.size());
+
+        assertEquals(
+                sut.size(),
+                sut.stream()
+                        .filter(e -> e.value == e.key * 100)
                         .count()
         );
     }

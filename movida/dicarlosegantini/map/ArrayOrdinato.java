@@ -116,6 +116,11 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     }
 
     @Override
+    public void clear() {
+        this.size = 0;
+    }
+
+    @Override
     public Stream<Entry<K, V>> stream() {
         return IntStream.range(0, this.size).mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
     }

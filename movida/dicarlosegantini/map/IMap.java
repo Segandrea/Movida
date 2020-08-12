@@ -46,6 +46,8 @@ public interface IMap<K, V> {
 
     int size();
 
+    void clear();
+
     default boolean empty() {
         return 0 == this.size();
     }
