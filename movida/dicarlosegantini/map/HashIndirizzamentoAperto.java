@@ -52,7 +52,7 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return newInstance;
     }
 
-    private static <K1> long hashKey(final K1 key) {
+    private static <K1> long computeHash(final K1 key) {
         final var hashCode = key.hashCode();
         return ((long) Math.abs(hashCode)) + ((hashCode < 0) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
@@ -153,7 +153,7 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
      */
     private int indexOf(final K key) {
         assert null != key;
-        final var hash = hashKey(key);
+        final var hash = computeHash(key);
         final var capacity = this.capacity();
         var emptyIndex = (int) (hash % capacity);
 
