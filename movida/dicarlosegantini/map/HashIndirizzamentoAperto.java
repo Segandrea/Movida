@@ -28,6 +28,7 @@
 package movida.dicarlosegantini.map;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -88,6 +89,30 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         this.reserve(1);
         return this.rawAdd(key, value);
     }
+
+    @Override
+    public V getOrAdd(final K key, final Supplier<V> supplier) {
+        assert null != key;
+        this.reserve(1);
+        var index = this.indexOf(key);
+
+        if (index >= 0) {
+            return this.values[index];
+        }
+
+        index = -(index + 1);
+        assert index < this.capacity();
+
+        final var value = supplier.get();
+        assert null != value;
+
+        this.keys[index] = key;
+        this.values[index] = value;
+        this.size += 1;
+
+        return value;
+    }
+
 
     @Override
     public V del(final K key) {

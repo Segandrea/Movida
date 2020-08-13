@@ -39,6 +39,7 @@ class IMapTest {
         this.testBasicOp(new HashIndirizzamentoAperto<>());
         this.testStream(new HashIndirizzamentoAperto<>());
         this.testClear(new HashIndirizzamentoAperto<>());
+        this.testGetOrAdd(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new ArrayOrdinato<>());
     }
@@ -50,6 +51,7 @@ class IMapTest {
         this.testBasicOp(new ArrayOrdinato<>());
         this.testStream(new ArrayOrdinato<>());
         this.testClear(new ArrayOrdinato<>());
+        this.testGetOrAdd(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new HashIndirizzamentoAperto<>());
     }
@@ -131,7 +133,14 @@ class IMapTest {
         assertTrue(sut.has("k1"));
         assertEquals(15, sut.get("k1"));
 
-        assertNull(sut.add("k2", 26));
+        assertEquals(15, sut.getOrAdd("k1", () -> 7));
+        assertFalse(sut.empty());
+        assertEquals(1, sut.size());
+        assertTrue(sut.capacity() >= sut.size());
+        assertTrue(sut.has("k1"));
+        assertEquals(15, sut.get("k1"));
+
+        assertEquals(26, sut.getOrAdd("k2", () -> 26));
         assertFalse(sut.empty());
         assertEquals(2, sut.size());
         assertTrue(sut.capacity() >= sut.size());
@@ -248,5 +257,22 @@ class IMapTest {
                         .filter(e -> e.value == e.key * 100)
                         .count()
         );
+    }
+
+    void testGetOrAdd(IMap<Integer, Integer> sut) {
+        assertTrue(sut.empty());
+        assertEquals(0, sut.size());
+
+        assertEquals(42, sut.getOrAdd(42, () -> 42));
+        assertTrue(sut.has(42));
+        assertEquals(42, sut.get(42));
+        assertFalse(sut.empty());
+        assertEquals(1, sut.size());
+
+        assertEquals(42, sut.getOrAdd(42, () -> 7));
+        assertTrue(sut.has(42));
+        assertEquals(42, sut.get(42));
+        assertFalse(sut.empty());
+        assertEquals(1, sut.size());
     }
 }

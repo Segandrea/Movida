@@ -27,6 +27,7 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -70,6 +71,32 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
         this.size += 1;
 
         return null;
+    }
+
+    @Override
+    public V getOrAdd(final K key, final Supplier<V> supplier) {
+        assert null != key;
+        var index = this.binarySearch(key);
+
+        if (index >= 0) {
+            return this.values[index];
+        }
+
+        index = -(index + 1);
+        assert index <= this.size;
+
+        final var value = supplier.get();
+        assert null != value;
+
+        this.reserve(1);
+        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
+        System.arraycopy(this.values, index, this.values, index + 1, this.size - index);
+
+        this.values[index] = value;
+        this.keys[index] = key;
+        this.size += 1;
+
+        return value;
     }
 
     @Override

@@ -27,10 +27,13 @@
 
 package movida.dicarlosegantini.map;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public interface IMap<K, V> {
     V add(final K key, final V value);
+
+    V getOrAdd(final K key, final Supplier<V> supplier);
 
     V get(final K key);
 
