@@ -94,14 +94,13 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         assert null != key;
 
         final var index = this.indexOf(key);
-        final var value = (index >= 0) ? this.values[index] : null;
-
-        if (null != value) {
+        if (index >= 0) {
             this.size -= 1;
             this.keys[index] = this.DELETED;
+            return this.values[index];
+        } else {
+            return null;
         }
-
-        return value;
     }
 
     @Override
@@ -147,54 +146,61 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         }
     }
 
-    // TODO: return negative index (in which the key would be placed) if not found
+    /*
+     * if found -> return a positive integer that indicates the position of the found element
+     *             NB. in this case, the returned value goes from 0 to (capacity - 1)
+     * if not found -> return a negative integer that indicates the position where the element should be
+     *                 placed.
+     *                 NB. the returned value in this case is equal to ((index * -1) - 1),
+     *                 so it goes from -1 to (-capacity).
+     */
     private int indexOf(final K key) {
         assert null != key;
-
-        if (this.empty()) {
-            return -1;
-        }
-
+        boolean foundDeleted = false;
         final var hash = hashKey(key);
-        for (int i = 0; i < this.capacity(); ++i) {
-            final var index = (int) ((hash + i) % this.capacity());
-            final var entry = this.keys[index];
+        var lastIndex = (int) (hash % this.capacity());
 
-            if (null == entry) {
-                break;
-            }
-            if (this.DELETED == entry) {
-                continue;
-            }
-            if (key.equals(entry)) {
-                return index;
+        if (!this.empty()) {
+            for (int i = 0; i < this.capacity(); ++i) {
+                final var index = (int) ((hash + i) % this.capacity());
+                final var entry = this.keys[index];
+
+                if (null == entry) {
+                    lastIndex = index;
+                    break;
+                }
+                if (this.DELETED == entry) {
+                    lastIndex = (foundDeleted) ? lastIndex : index;
+                    foundDeleted = true;
+                    continue;
+                }
+                if (key.equals(entry)) {
+                    return index;
+                }
             }
         }
 
-        return -1;
+        return -(lastIndex + 1);
     }
 
     private V rawAdd(final K key, final V value) {
         assert null != key;
         assert null != value;
+        var index = this.indexOf(key);
 
-        final var hash = hashKey(key);
-        for (int i = 0; i < this.capacity(); ++i) {
-            final var index = (int) ((hash + i) % this.capacity());
-            final var entry = this.keys[index];
-
-            if (null == entry || this.DELETED == entry) {
-                this.keys[index] = key;
-                this.values[index] = value;
-                this.size += 1;
-                break;
-            } else if (key.equals(entry)) {
-                final var oldValue = this.values[index];
-                this.values[index] = value;
-                return oldValue;
-            }
+        if (index >= 0) {
+            assert key.equals(this.keys[index]);
+            final var oldValue = this.values[index];
+            this.values[index] = value;
+            return oldValue;
         }
 
+        index = -(index + 1);
+        assert index < this.capacity();
+
+        this.keys[index] = key;
+        this.values[index] = value;
+        this.size += 1;
         return null;
     }
 }
