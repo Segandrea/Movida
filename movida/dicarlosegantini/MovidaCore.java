@@ -24,7 +24,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+//TODO: replace java.util.HashSet with custom set
 package movida.dicarlosegantini;
 
 import movida.commons.*;
@@ -37,18 +37,27 @@ import movida.dicarlosegantini.sort.SelectionSort;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public class MovidaCore implements IMovidaConfig, IMovidaDB {
     private final MapImplementation mapImplementation;
+    private final IMap<String, HashSet<Movie>> moviesByActor;
     private IMap<String, Person> people;
     private IMap<String, Movie> movies;
+    private IMap<String, HashSet<Movie>> moviesByDirector;
+    private IMap<Integer, HashSet<Movie>> moviesByYear;
     private ISort sort;
 
     private MovidaCore() {
         this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
+
         this.people = new HashIndirizzamentoAperto<>();
         this.movies = new HashIndirizzamentoAperto<>();
+        this.moviesByDirector = new HashIndirizzamentoAperto<>();
+        this.moviesByActor = new HashIndirizzamentoAperto<>();
+        this.moviesByYear = new HashIndirizzamentoAperto<>();
+
         this.sort = new QuickSort();
     }
 
@@ -97,10 +106,14 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
         final var votes = Integer.parseInt(movieData.get("votes"));
 
         final var movie = new Movie(title, year, votes, cast, director);
+
         this.movies.add(movie.getTitle(), movie);
+        this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
+        this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
         this.people.add(movie.getDirector().getName(), movie.getDirector());
-        for (var p : movie.getCast()) {
-            this.people.add(p.getName(), p);
+        for (final var actor : movie.getCast()) {
+            this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
+            this.people.add(actor.getName(), actor);
         }
     }
 
@@ -127,10 +140,14 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
                 case ArrayOrdinato:
                     this.people = ArrayOrdinato.from(this.people);
                     this.movies = ArrayOrdinato.from(this.movies);
+                    this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
+                    this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
                     break;
                 case HashIndirizzamentoAperto:
                     this.people = HashIndirizzamentoAperto.from(this.people);
                     this.movies = HashIndirizzamentoAperto.from(this.movies);
+                    this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
+                    this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
                     break;
                 default:
                     return false;
@@ -221,7 +238,18 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public boolean deleteMovieByTitle(final String title) {
-        return null != this.movies.del(title.toLowerCase());
+        final var movie = this.movies.del(title.toLowerCase());
+
+        if (null != movie) {
+            this.moviesByYear.get(movie.getYear()).remove(movie);
+            this.moviesByDirector.get(movie.getDirector().getName()).remove(movie);
+            for (final var actor : movie.getCast()) {
+                this.moviesByActor.get(actor.getName()).remove(movie);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     @Override
