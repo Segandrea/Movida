@@ -52,6 +52,11 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return newInstance;
     }
 
+    private static <K1> long hashKey(final K1 key) {
+        final var hashCode = key.hashCode();
+        return ((long) Math.abs(hashCode)) + ((hashCode < 0) ? ((long) (Integer.MAX_VALUE)) : 0L);
+    }
+
     @Override
     public int size() {
         return this.size;
@@ -142,6 +147,7 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         }
     }
 
+    // TODO: return negative index (in which the key would be placed) if not found
     private int indexOf(final K key) {
         assert null != key;
 
@@ -149,9 +155,9 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
             return -1;
         }
 
-        final var hash = key.hashCode();
+        final var hash = hashKey(key);
         for (int i = 0; i < this.capacity(); ++i) {
-            final var index = (hash + i) % this.capacity();
+            final var index = (int) ((hash + i) % this.capacity());
             final var entry = this.keys[index];
 
             if (null == entry) {
@@ -172,7 +178,7 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         assert null != key;
         assert null != value;
 
-        final var hash = ((long) Math.abs(key.hashCode())) + ((key.hashCode() < 0) ? (long) (Integer.MAX_VALUE) : 0L);
+        final var hash = hashKey(key);
         for (int i = 0; i < this.capacity(); ++i) {
             final var index = (int) ((hash + i) % this.capacity());
             final var entry = this.keys[index];
