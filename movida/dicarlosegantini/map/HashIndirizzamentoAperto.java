@@ -147,40 +147,44 @@ public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     /*
-     * if found -> return a positive integer that indicates the position of the found element
-     *             NB. in this case, the returned value goes from 0 to (capacity - 1)
-     * if not found -> return a negative integer that indicates the position where the element should be
-     *                 placed.
-     *                 NB. the returned value in this case is equal to ((index * -1) - 1),
-     *                 so it goes from -1 to (-capacity).
+     * found     -> return the index of the key in the keys array (index in range [0, capacity - 1]).
+     * not found -> return a negative index that indicates the slot in which the key should be placed in the keys array
+     *              (index in range [-1, -capacity]).
      */
     private int indexOf(final K key) {
         assert null != key;
-        boolean foundDeleted = false;
         final var hash = hashKey(key);
-        var lastIndex = (int) (hash % this.capacity());
+        final var capacity = this.capacity();
+        var emptyIndex = (int) (hash % capacity);
 
         if (!this.empty()) {
-            for (int i = 0; i < this.capacity(); ++i) {
-                final var index = (int) ((hash + i) % this.capacity());
-                final var entry = this.keys[index];
+            var iter = 0;
+            var index = emptyIndex;
+            var deletedNotAlreadyEncountered = true;
 
-                if (null == entry) {
-                    lastIndex = index;
+            do {
+                final var keyItem = this.keys[index];
+
+                if (null == keyItem) {
+                    if (deletedNotAlreadyEncountered) {
+                        emptyIndex = index;
+                    }
                     break;
                 }
-                if (this.DELETED == entry) {
-                    lastIndex = (foundDeleted) ? lastIndex : index;
-                    foundDeleted = true;
-                    continue;
-                }
-                if (key.equals(entry)) {
+                if (key.equals(keyItem)) {
                     return index;
                 }
-            }
+                if (this.DELETED == keyItem && deletedNotAlreadyEncountered) {
+                    emptyIndex = index;
+                    deletedNotAlreadyEncountered = false;
+                }
+
+                iter += 1;
+                index = (int) ((hash + iter) % capacity);
+            } while (iter < capacity);
         }
 
-        return -(lastIndex + 1);
+        return -(emptyIndex + 1);
     }
 
     private V rawAdd(final K key, final V value) {
