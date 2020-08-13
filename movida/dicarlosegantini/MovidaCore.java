@@ -39,7 +39,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class MovidaCore implements IMovidaConfig {
+public class MovidaCore implements IMovidaConfig, IMovidaDB {
     private final MapImplementation mapImplementation;
     private IMap<String, Person> people;
     private IMap<String, Movie> movies;
@@ -50,6 +50,58 @@ public class MovidaCore implements IMovidaConfig {
         this.people = new HashIndirizzamentoAperto<>();
         this.movies = new HashIndirizzamentoAperto<>();
         this.sort = new QuickSort();
+    }
+
+    private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
+        writer.append("title: ");
+        writer.append(movie.getTitle());
+        writer.newLine();
+
+        writer.append("year: ");
+        writer.append(movie.getYear().toString());
+        writer.newLine();
+
+        writer.append("director: ");
+        writer.append(movie.getDirector().getName());
+        writer.newLine();
+
+        writer.append("cast: ");
+        writer.append(
+                Arrays.stream(movie.getCast())
+                        .map(Person::getName)
+                        .collect(Collectors.joining(", "))
+        );
+        writer.newLine();
+
+        writer.append("votes: ");
+        writer.append(movie.getVotes().toString());
+        writer.newLine();
+
+        writer.newLine();
+    }
+
+    private <K extends Comparable<K>, V> IMap<K, V> instanceCurrentMap() {
+        if (this.mapImplementation == MapImplementation.ArrayOrdinato) {
+            return new ArrayOrdinato<>();
+        }
+        return new HashIndirizzamentoAperto<>();
+    }
+
+    private void loadMovie(final IMap<String, String> movieData) {
+        final var title = movieData.get("title");
+        final var year = Integer.parseInt(movieData.get("year"));
+        final var director = new Person(movieData.get("director"));
+        final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
+                .map(Person::new)
+                .toArray(Person[]::new);
+        final var votes = Integer.parseInt(movieData.get("votes"));
+
+        final var movie = new Movie(title, year, votes, cast, director);
+        this.movies.add(movie.getTitle(), movie);
+        this.people.add(movie.getDirector().getName(), movie.getDirector());
+        for (var p : movie.getCast()) {
+            this.people.add(p.getName(), p);
+        }
     }
 
     @Override
@@ -88,87 +140,43 @@ public class MovidaCore implements IMovidaConfig {
         return true;
     }
 
-    private <K extends Comparable<K>, V> IMap<K, V> instanceCurrentMap() {
-        if (this.mapImplementation == MapImplementation.ArrayOrdinato) {
-            return new ArrayOrdinato<>();
-        }
-        return new HashIndirizzamentoAperto<>();
-    }
-
-    private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
-        writer.append("title: ");
-        writer.append(movie.getTitle());
-        writer.newLine();
-
-        writer.append("year: ");
-        writer.append(movie.getYear().toString());
-        writer.newLine();
-
-        writer.append("director: ");
-        writer.append(movie.getDirector().getName());
-        writer.newLine();
-
-        writer.append("cast: ");
-        writer.append(
-                Arrays.stream(movie.getCast())
-                        .map(Person::getName)
-                        .collect(Collectors.joining(", "))
-        );
-        writer.newLine();
-
-        writer.append("votes: ");
-        writer.append(movie.getVotes().toString());
-        writer.newLine();
-
-        writer.newLine();
-    }
-
-    private void loadMovie(final IMap<String, String> movieData) {
-        final var title = movieData.get("title");
-        final var year = Integer.parseInt(movieData.get("year"));
-        final var director = new Person(movieData.get("director"));
-        final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
-                .map(Person::new)
-                .toArray(Person[]::new);
-        final var votes = Integer.parseInt(movieData.get("votes"));
-
-        final var movie = new Movie(title, year, votes, cast, director);
-        this.movies.add(movie.getTitle(), movie);
-        this.people.add(movie.getDirector().getName(), movie.getDirector());
-        for (var p : movie.getCast()) {
-            this.people.add(p.getName(), p);
-        }
-    }
-
-    public void loadFromFile(File f) throws IOException {
-        var reader = new BufferedReader(new FileReader(f));
+    @Override
+    public void loadFromFile(File f) {
         IMap<String, String> movieData = this.instanceCurrentMap();
 
-        for (var line = reader.readLine(); line != null; line = reader.readLine()) {
-            line = line.strip().toLowerCase();
+        try {
+            var reader = new BufferedReader(new FileReader(f));
 
-            if (line.isEmpty()) {
-                this.loadMovie(movieData);
-                movieData.clear();
-                continue;
-            }
+            for (var line = reader.readLine(); line != null; line = reader.readLine()) {
+                line = line.strip().toLowerCase();
 
-            final var keyValue = line.split("[\\W]*:[\\W]*");
-            if (keyValue.length != 2) {
-                throw new MovidaFileException(/*parse error: bad key-value supplied*/);
-            }
+                if (line.isEmpty()) {
+                    this.loadMovie(movieData);
+                    movieData.clear();
+                    continue;
+                }
 
-            switch (keyValue[0]) {
-                case "title":
-                case "year":
-                case "director":
-                case "cast":
-                case "votes":
-                    movieData.add(keyValue[0], keyValue[1]);
-                    break;
-                default:
-                    throw new MovidaFileException(/*parse error: unexpected key*/);
+                final var keyValue = line.split("[\\W]*:[\\W]*");
+                if (keyValue.length != 2) {
+                    throw new MovidaFileException(/*parse error: bad key-value supplied*/);
+                }
+
+                switch (keyValue[0]) {
+                    case "title":
+                    case "year":
+                    case "director":
+                    case "cast":
+                    case "votes":
+                        movieData.add(keyValue[0], keyValue[1]);
+                        break;
+                    default:
+                        throw new MovidaFileException(/*parse error: unexpected key*/);
+                }
             }
+        } catch (final IOException e) {
+            var x = new MovidaFileException();
+            x.initCause(x);
+            throw x;
         }
 
         if (!movieData.empty()) {
@@ -176,15 +184,63 @@ public class MovidaCore implements IMovidaConfig {
         }
     }
 
-    public void saveToFile(File f) throws IOException {
-        var writer = new BufferedWriter(new FileWriter(f));
-        var iterator = this.movies.stream().iterator();
+    @Override
+    public void saveToFile(File f) {
+        try {
+            var writer = new BufferedWriter(new FileWriter(f));
+            var iterator = this.movies.stream().iterator();
 
-        while (iterator.hasNext()) {
-            final var entry = iterator.next();
-            saveMovieToFile(writer, entry.value);
+            while (iterator.hasNext()) {
+                final var entry = iterator.next();
+                saveMovieToFile(writer, entry.value);
+            }
+
+            writer.flush();
+        } catch (final IOException e) {
+            var x = new MovidaFileException();
+            x.initCause(x);
+            throw x;
         }
+    }
 
-        writer.flush();
+    @Override
+    public void clear() {
+        this.people.clear();
+        this.movies.clear();
+    }
+
+    @Override
+    public int countMovies() {
+        return this.movies.size();
+    }
+
+    @Override
+    public int countPeople() {
+        return this.people.size();
+    }
+
+    @Override
+    public boolean deleteMovieByTitle(final String title) {
+        return null != this.movies.del(title.toLowerCase());
+    }
+
+    @Override
+    public Movie getMovieByTitle(final String title) {
+        return this.movies.get(title.toLowerCase());
+    }
+
+    @Override
+    public Person getPersonByName(final String name) {
+        return this.people.get(name.toLowerCase());
+    }
+
+    @Override
+    public Movie[] getAllMovies() {
+        return this.movies.stream().map(entry -> entry.value).toArray(Movie[]::new);
+    }
+
+    @Override
+    public Person[] getAllPeople() {
+        return this.people.stream().map(entry -> entry.value).toArray(Person[]::new);
     }
 }
