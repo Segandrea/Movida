@@ -59,7 +59,7 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
         this.people = new HashIndirizzamentoAperto<>();
         this.movies = new HashIndirizzamentoAperto<>();
 
-        this.sortingAlgorithm = new QuickSort();
+        this.sortingAlgorithm = QuickSort.instance;
     }
 
     private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
@@ -122,10 +122,10 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
     public boolean setSort(final SortingAlgorithm sortingAlgorithm) {
         switch (sortingAlgorithm) {
             case SelectionSort:
-                this.sortingAlgorithm = new SelectionSort();
+                this.sortingAlgorithm = SelectionSort.instance;
                 break;
             case QuickSort:
-                this.sortingAlgorithm = new QuickSort();
+                this.sortingAlgorithm = QuickSort.instance;
                 break;
             default:
                 return false;

@@ -30,8 +30,11 @@ package movida.dicarlosegantini.sort;
 import java.util.Comparator;
 import java.util.Random;
 
-public class QuickSort implements ISort {
+public final class QuickSort implements ISort {
+    public static final QuickSort instance = new QuickSort();
     private static final Random rand = new Random();
+
+    private QuickSort() {}
 
     private static <T> void swap(T[] array, final int firstIndex, final int lastIndex) {
         final var tmp = array[firstIndex];

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ISortTest {
     @org.junit.jupiter.api.Test
     void testSelectionSort() {
-        final var sut = new SelectionSort();
+        final var sut = SelectionSort.instance;
 
         this.testNoElements(sut);
         this.testOneElement(sut);
@@ -42,7 +42,7 @@ class ISortTest {
 
     @org.junit.jupiter.api.Test
     void testQuickSort() {
-        final var sut = new QuickSort();
+        final var sut = QuickSort.instance;
 
         this.testNoElements(sut);
         this.testOneElement(sut);
