@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
+public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     private V[] values;
     private K[] keys;
     private int size;

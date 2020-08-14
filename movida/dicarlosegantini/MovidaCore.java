@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
-public class MovidaCore implements IMovidaConfig, IMovidaDB {
+public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     private MapImplementation mapImplementation;
     private IMap<String, HashSet<Movie>> moviesByDirector;
     private IMap<String, HashSet<Movie>> moviesByActor;

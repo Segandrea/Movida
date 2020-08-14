@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
+public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
     private V[] values;
