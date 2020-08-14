@@ -27,6 +27,8 @@
 
 package movida.dicarlosegantini.map;
 
+import movida.dicarlosegantini.array.BinarySearch;
+
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -172,30 +174,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         this.keys = tmpKeys;
     }
 
-    /*
-     * Binary search of the given key in the array.
-     *
-     * found     -> return the index of the key in the keys array (index in range [0, size - 1]).
-     * not found -> return a negative index that indicates the slot in which the key should be placed in the keys array
-     *              (index in range [-1, -size]).
-     */
     private int binarySearch(final K key) {
-        return this.binarySearch(key, 0, this.size - 1);
-    }
-
-    private int binarySearch(final K key, final int start, final int end) {
-        if (start > end) {
-            return -(start + 1);
-        }
-
-        final var middle = (start + end) / 2;
-        switch (this.keys[middle].compareTo(key)) {
-            case 1:
-                return this.binarySearch(key, start, middle - 1);
-            case -1:
-                return this.binarySearch(key, middle + 1, end);
-            default:
-                return middle;
-        }
+        return BinarySearch.instance.binarySearch(this.keys, this.size, key);
     }
 }
