@@ -191,9 +191,8 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     /*
-     * found     -> return the index of the key in the keys array (index in range [0, capacity - 1]).
-     * not found -> return a negative index that indicates the slot in which the key should be placed in the keys array
-     *              (index in range [-1, -capacity]).
+     * present -> return the index of the key in the array (index is in range [0, length - 1]).
+     * absent  -> return the index in which the key would be placed in the array (index is in range [-1, -length]).
      */
     private int indexOf(final K key) {
         assert null != key;
