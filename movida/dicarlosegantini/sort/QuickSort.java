@@ -50,8 +50,8 @@ public final class QuickSort implements ISort {
         array[lastIndex] = tmp;
     }
 
-    private static <T> int partition(T[] array, final Comparator<T> comparator,
-                                     final int firstIndex, final int lastIndex) {
+    private static <T> int partition(T[] array, final int firstIndex, final int lastIndex,
+                                     final Comparator<T> comparator) {
         // swap firstIndex with a random pivot to optimize the quicksort
         swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
@@ -76,22 +76,17 @@ public final class QuickSort implements ISort {
         }
     }
 
-    private static <T> void recurse(T[] array, final Comparator<T> comparator,
-                                    final int firstIndex, final int lastIndex) {
+    private static <T> void recurse(T[] array, final int firstIndex, final int lastIndex,
+                                    final Comparator<T> comparator) {
         if (firstIndex < lastIndex) {
-            final var pivotIndex = partition(array, comparator, firstIndex, lastIndex);
-            recurse(array, comparator, firstIndex, pivotIndex - 1);
-            recurse(array, comparator, pivotIndex + 1, lastIndex);
+            final var pivotIndex = partition(array, firstIndex, lastIndex, comparator);
+            recurse(array, firstIndex, pivotIndex - 1, comparator);
+            recurse(array, pivotIndex + 1, lastIndex, comparator);
         }
     }
 
     @Override
-    public <T extends Comparable<T>> void sort(T[] array) {
-        this.sort(array, T::compareTo);
-    }
-
-    @Override
-    public <T> void sort(T[] array, final Comparator<T> comparator) {
-        recurse(array, comparator, 0, array.length - 1);
+    public <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator) {
+        recurse(array, startIndex, endIndex, comparator);
     }
 }

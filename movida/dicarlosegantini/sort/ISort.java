@@ -30,7 +30,25 @@ package movida.dicarlosegantini.sort;
 import java.util.Comparator;
 
 public interface ISort {
-    <T extends Comparable<T>> void sort(T[] array);
+    default <T extends Comparable<T>> void sort(T[] array) {
+        this.sort(array, T::compareTo);
+    }
 
-    <T> void sort(T[] array, final Comparator<T> comparator);
+    default <T extends Comparable<T>> void sort(T[] array, final int length) {
+        this.sort(array, length, T::compareTo);
+    }
+
+    default <T extends Comparable<T>> void sort(T[] array, final int startIndex, final int endIndex) {
+        this.sort(array, startIndex, endIndex, T::compareTo);
+    }
+
+    default <T> void sort(T[] array, final Comparator<T> comparator) {
+        this.sort(array, array.length, comparator);
+    }
+
+    default <T> void sort(T[] array, final int length, final Comparator<T> comparator) {
+        this.sort(array, 0, length - 1, comparator);
+    }
+
+    <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator);
 }

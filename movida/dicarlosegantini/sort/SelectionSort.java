@@ -43,16 +43,13 @@ public final class SelectionSort implements ISort {
     }
 
     @Override
-    public <T extends Comparable<T>> void sort(T[] array) {
-        this.sort(array, T::compareTo);
-    }
+    public <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator) {
+        final var ARRAY_SIZE = endIndex + 1;
 
-    @Override
-    public <T> void sort(T[] array, final Comparator<T> comparator) {
-        for (int lastIndex = 0; lastIndex < array.length; ++lastIndex) {
+        for (int lastIndex = startIndex; lastIndex < ARRAY_SIZE; ++lastIndex) {
             var minIndex = lastIndex;
 
-            for (int i = lastIndex + 1; i < array.length; ++i) {
+            for (int i = lastIndex + 1; i < ARRAY_SIZE; ++i) {
                 if (0 > comparator.compare(array[i], array[minIndex])) {
                     minIndex = i;
                 }
