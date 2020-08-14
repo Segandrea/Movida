@@ -27,6 +27,10 @@
 
 package movida.dicarlosegantini.sort;
 
+import java.util.Comparator;
+
 public interface ISort {
     <T extends Comparable<T>> void sort(T[] array);
+
+    <T> void sort(T[] array, final Comparator<T> comparator);
 }

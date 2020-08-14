@@ -27,6 +27,7 @@
 
 package movida.dicarlosegantini.sort;
 
+import java.util.Comparator;
 import java.util.Random;
 
 public class QuickSort implements ISort {
@@ -38,7 +39,7 @@ public class QuickSort implements ISort {
         array[lastIndex] = tmp;
     }
 
-    private static <T extends Comparable<T>> int partition(T[] array, final int firstIndex, final int lastIndex) {
+    private static <T> int partition(T[] array, final Comparator<T> comparator, final int firstIndex, final int lastIndex) {
         // swap firstIndex with a random pivot to optimize the quicksort
         swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
@@ -47,11 +48,11 @@ public class QuickSort implements ISort {
         var inf = firstIndex;
 
         while (true) {
-            while (array[inf].compareTo(pivotValue) < 0) {
+            while (comparator.compare(array[inf], pivotValue) < 0) {
                 inf += 1;
             }
 
-            while (array[sup].compareTo(pivotValue) > 0) {
+            while (comparator.compare(array[sup], pivotValue) > 0) {
                 sup -= 1;
             }
 
@@ -63,16 +64,21 @@ public class QuickSort implements ISort {
         }
     }
 
-    private static <T extends Comparable<T>> void recurse(T[] array, final int firstIndex, final int lastIndex) {
+    private static <T> void recurse(T[] array, final Comparator<T> comparator, final int firstIndex, final int lastIndex) {
         if (firstIndex < lastIndex) {
-            final var pivotIndex = partition(array, firstIndex, lastIndex);
-            recurse(array, firstIndex, pivotIndex - 1);
-            recurse(array, pivotIndex + 1, lastIndex);
+            final var pivotIndex = partition(array, comparator, firstIndex, lastIndex);
+            recurse(array, comparator, firstIndex, pivotIndex - 1);
+            recurse(array, comparator, pivotIndex + 1, lastIndex);
         }
     }
 
     @Override
     public <T extends Comparable<T>> void sort(T[] array) {
-        recurse(array, 0, array.length - 1);
+        this.sort(array, T::compareTo);
+    }
+
+    @Override
+    public <T> void sort(T[] array, final Comparator<T> comparator) {
+        recurse(array, comparator, 0, array.length - 1);
     }
 }

@@ -27,14 +27,21 @@
 
 package movida.dicarlosegantini.sort;
 
+import java.util.Comparator;
+
 public class SelectionSort implements ISort {
     @Override
     public <T extends Comparable<T>> void sort(T[] array) {
+        this.sort(array, T::compareTo);
+    }
+
+    @Override
+    public <T> void sort(T[] array, final Comparator<T> comparator) {
         for (int lastIndex = 0; lastIndex < array.length; ++lastIndex) {
             var minIndex = lastIndex;
 
             for (int i = lastIndex + 1; i < array.length; ++i) {
-                if (array[i].compareTo(array[minIndex]) < 0) {
+                if (comparator.compare(array[i], array[minIndex]) < 0) {
                     minIndex = i;
                 }
             }
