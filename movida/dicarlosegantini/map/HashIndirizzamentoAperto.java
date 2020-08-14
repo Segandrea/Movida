@@ -28,6 +28,7 @@
 package movida.dicarlosegantini.map;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -102,9 +103,11 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         final var index = this.indexOf(key);
 
         if (0 <= index) {
-            this.size -= 1;
+            final var value = this.values[index];
+            this.values[index] = null;
             this.keys[index] = this.DELETED;
-            return this.values[index];
+            this.size -= 1;
+            return value;
         }
 
         return null;
@@ -117,10 +120,27 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     @Override
+    public Stream<K> keys() {
+        return Arrays.stream(this.keys)
+                .filter(k -> null != k && this.DELETED != k)
+                .limit(this.size);
+    }
+
+    @Override
+    public Stream<V> values() {
+        return Arrays.stream(this.values)
+                .filter(Objects::nonNull)
+                .limit(this.size);
+    }
+
+    @Override
     public Stream<Entry<K, V>> stream() {
         return IntStream
                 .range(0, this.capacity())
-                .filter(i -> null != this.keys[i])
+                .filter(i -> {
+                    final var k = this.keys[i];
+                    return null != k && this.DELETED != k;
+                })
                 .limit(this.size)
                 .mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
     }

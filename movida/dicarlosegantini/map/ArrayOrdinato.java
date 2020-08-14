@@ -29,6 +29,7 @@ package movida.dicarlosegantini.map;
 
 import movida.dicarlosegantini.array.BinarySearch;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -133,6 +134,16 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     public boolean has(final K key) {
         assert null != key;
         return 0 <= this.binarySearch(key);
+    }
+
+    @Override
+    public Stream<K> keys() {
+        return Arrays.stream(this.keys).limit(this.size);
+    }
+
+    @Override
+    public Stream<V> values() {
+        return Arrays.stream(this.values).limit(this.size);
     }
 
     @Override

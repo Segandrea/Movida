@@ -41,6 +41,10 @@ public interface IMap<K, V> {
 
     boolean has(final K key);
 
+    Stream<K> keys();
+
+    Stream<V> values();
+
     Stream<Entry<K, V>> stream();
 
     void reserve(final int additionalItems);
