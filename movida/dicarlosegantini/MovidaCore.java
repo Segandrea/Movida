@@ -24,7 +24,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-//TODO: replace java.util.HashSet with custom set
+
+// TODO: replace java.util.HashSet with custom set implementation
 package movida.dicarlosegantini;
 
 import movida.commons.*;
@@ -41,24 +42,24 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public class MovidaCore implements IMovidaConfig, IMovidaDB {
-    private final MapImplementation mapImplementation;
-    private final IMap<String, HashSet<Movie>> moviesByActor;
+    private MapImplementation mapImplementation;
+    private IMap<String, HashSet<Movie>> moviesByDirector;
+    private IMap<String, HashSet<Movie>> moviesByActor;
+    private IMap<Integer, HashSet<Movie>> moviesByYear;
     private IMap<String, Person> people;
     private IMap<String, Movie> movies;
-    private IMap<String, HashSet<Movie>> moviesByDirector;
-    private IMap<Integer, HashSet<Movie>> moviesByYear;
-    private ISort sort;
+    private ISort sortingAlgorithm;
 
     private MovidaCore() {
         this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
 
-        this.people = new HashIndirizzamentoAperto<>();
-        this.movies = new HashIndirizzamentoAperto<>();
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
         this.moviesByActor = new HashIndirizzamentoAperto<>();
         this.moviesByYear = new HashIndirizzamentoAperto<>();
+        this.people = new HashIndirizzamentoAperto<>();
+        this.movies = new HashIndirizzamentoAperto<>();
 
-        this.sort = new QuickSort();
+        this.sortingAlgorithm = new QuickSort();
     }
 
     private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
@@ -89,8 +90,8 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
         writer.newLine();
     }
 
-    private <K extends Comparable<K>, V> IMap<K, V> instanceCurrentMap() {
-        if (this.mapImplementation == MapImplementation.ArrayOrdinato) {
+    private <K extends Comparable<K>, V> IMap<K, V> instanceMap() {
+        if (MapImplementation.ArrayOrdinato == this.mapImplementation) {
             return new ArrayOrdinato<>();
         }
         return new HashIndirizzamentoAperto<>();
@@ -107,24 +108,24 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
 
         final var movie = new Movie(title, year, votes, cast, director);
 
-        this.movies.add(movie.getTitle(), movie);
         this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
         this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
-        this.people.add(movie.getDirector().getName(), movie.getDirector());
         for (final var actor : movie.getCast()) {
             this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
             this.people.add(actor.getName(), actor);
         }
+        this.people.add(movie.getDirector().getName(), movie.getDirector());
+        this.movies.add(movie.getTitle(), movie);
     }
 
     @Override
-    public boolean setSort(final SortingAlgorithm a) {
-        switch (a) {
+    public boolean setSort(final SortingAlgorithm sortingAlgorithm) {
+        switch (sortingAlgorithm) {
             case SelectionSort:
-                this.sort = new SelectionSort();
+                this.sortingAlgorithm = new SelectionSort();
                 break;
             case QuickSort:
-                this.sort = new QuickSort();
+                this.sortingAlgorithm = new QuickSort();
                 break;
             default:
                 return false;
@@ -134,24 +135,27 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
     }
 
     @Override
-    public boolean setMap(final MapImplementation m) {
-        if (m != this.mapImplementation) {
-            switch (m) {
+    public boolean setMap(final MapImplementation mapImplementation) {
+        if (mapImplementation != this.mapImplementation) {
+            switch (mapImplementation) {
                 case ArrayOrdinato:
+                    this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
+                    this.moviesByActor = ArrayOrdinato.from(this.moviesByActor);
+                    this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
                     this.people = ArrayOrdinato.from(this.people);
                     this.movies = ArrayOrdinato.from(this.movies);
-                    this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
-                    this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
                     break;
                 case HashIndirizzamentoAperto:
+                    this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
+                    this.moviesByActor = HashIndirizzamentoAperto.from(this.moviesByActor);
+                    this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
                     this.people = HashIndirizzamentoAperto.from(this.people);
                     this.movies = HashIndirizzamentoAperto.from(this.movies);
-                    this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
-                    this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
                     break;
                 default:
                     return false;
             }
+            this.mapImplementation = mapImplementation;
         }
 
         return true;
@@ -159,12 +163,12 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public void loadFromFile(File f) {
-        IMap<String, String> movieData = this.instanceCurrentMap();
+        IMap<String, String> movieData = this.instanceMap();
 
         try {
-            var reader = new BufferedReader(new FileReader(f));
+            final var reader = new BufferedReader(new FileReader(f));
 
-            for (var line = reader.readLine(); line != null; line = reader.readLine()) {
+            for (var line = reader.readLine(); null != line; line = reader.readLine()) {
                 line = line.strip().toLowerCase();
 
                 if (line.isEmpty()) {
@@ -175,7 +179,7 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
 
                 final var keyValue = line.split("[\\W]*:[\\W]*");
                 if (keyValue.length != 2) {
-                    throw new MovidaFileException(/*parse error: bad key-value supplied*/);
+                    throw new MovidaFileException(/* parse error: bad key-value supplied */);
                 }
 
                 switch (keyValue[0]) {
@@ -187,11 +191,11 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
                         movieData.add(keyValue[0], keyValue[1]);
                         break;
                     default:
-                        throw new MovidaFileException(/*parse error: unexpected key*/);
+                        throw new MovidaFileException(/* parse error: unexpected key */);
                 }
             }
         } catch (final IOException e) {
-            var x = new MovidaFileException();
+            final var x = new MovidaFileException();
             x.initCause(x);
             throw x;
         }
@@ -204,8 +208,8 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
     @Override
     public void saveToFile(File f) {
         try {
-            var writer = new BufferedWriter(new FileWriter(f));
-            var iterator = this.movies.stream().iterator();
+            final var writer = new BufferedWriter(new FileWriter(f));
+            final var iterator = this.movies.stream().iterator();
 
             while (iterator.hasNext()) {
                 final var entry = iterator.next();
@@ -214,7 +218,7 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
 
             writer.flush();
         } catch (final IOException e) {
-            var x = new MovidaFileException();
+            final var x = new MovidaFileException();
             x.initCause(x);
             throw x;
         }
@@ -241,11 +245,13 @@ public class MovidaCore implements IMovidaConfig, IMovidaDB {
         final var movie = this.movies.del(title.toLowerCase());
 
         if (null != movie) {
-            this.moviesByYear.get(movie.getYear()).remove(movie);
             this.moviesByDirector.get(movie.getDirector().getName()).remove(movie);
+            this.moviesByYear.get(movie.getYear()).remove(movie);
+
             for (final var actor : movie.getCast()) {
                 this.moviesByActor.get(actor.getName()).remove(movie);
             }
+
             return true;
         }
 
