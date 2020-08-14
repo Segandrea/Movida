@@ -43,7 +43,7 @@ public interface IMap<K, V> {
 
     Stream<Entry<K, V>> stream();
 
-    void reserve(final int numOfItems);
+    void reserve(final int additionalItems);
 
     int capacity();
 

@@ -38,9 +38,9 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
 
     @SuppressWarnings("unchecked")
     public ArrayOrdinato() {
-        this.size = 0;
-        this.keys = (K[]) new Comparable[0];
         this.values = (V[]) new Object[0];
+        this.keys = (K[]) new Comparable[0];
+        this.size = 0;
     }
 
     public static <K1 extends Comparable<K1>, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
@@ -62,10 +62,13 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
             return tmp;
         }
 
-        index = -(1 + index);
+        index = -(index + 1);
+        assert index <= this.size;
+
         this.reserve(1);
-        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
         System.arraycopy(this.values, index, this.values, index + 1, this.size - index);
+        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
+
         this.values[index] = value;
         this.keys[index] = key;
         this.size += 1;
@@ -89,8 +92,8 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
         assert null != value;
 
         this.reserve(1);
-        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
         System.arraycopy(this.values, index, this.values, index + 1, this.size - index);
+        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
 
         this.values[index] = value;
         this.keys[index] = key;
@@ -103,7 +106,6 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     public V get(final K key) {
         assert null != key;
         final var index = this.binarySearch(key);
-
         return (index >= 0) ? this.values[index] : null;
     }
 
@@ -118,8 +120,8 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
 
         final var outValue = this.values[index];
 
-        System.arraycopy(this.keys, index + 1, this.keys, index, this.size - index - 1);
         System.arraycopy(this.values, index + 1, this.values, index, this.size - index - 1);
+        System.arraycopy(this.keys, index + 1, this.keys, index, this.size - index - 1);
         this.size -= 1;
 
         return outValue;
@@ -128,7 +130,6 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     @Override
     public boolean has(final K key) {
         assert null != key;
-
         return this.binarySearch(key) >= 0;
     }
 
@@ -153,30 +154,30 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     }
 
     @SuppressWarnings({"unchecked"})
-    public void reserve(final int numOfItems) {
-        if ((this.size + numOfItems) <= this.keys.length) {
+    public void reserve(final int additionalItems) {
+        if ((this.size + additionalItems) <= this.keys.length) {
             return;
         }
 
-        final var newCapacity = (int) Math.ceil((this.size + numOfItems) / 0.6);
-        final var tmpKeys = (K[]) new Comparable[newCapacity];
+        final var newCapacity = (int) Math.ceil((this.size + additionalItems) / 0.6);
         final var tmpValues = (V[]) new Object[newCapacity];
+        final var tmpKeys = (K[]) new Comparable[newCapacity];
 
         if (this.size > 0) {
-            System.arraycopy(this.keys, 0, tmpKeys, 0, this.size);
             System.arraycopy(this.values, 0, tmpValues, 0, this.size);
+            System.arraycopy(this.keys, 0, tmpKeys, 0, this.size);
         }
 
-        this.keys = tmpKeys;
         this.values = tmpValues;
+        this.keys = tmpKeys;
     }
 
-    /* Binary search of the given key in the array.
-     * if found -> return a positive integer that indicates the position of the found element
-     *             NB. in this case, the returned value goes from 0 to (size - 1)
-     * if not found -> return a negative integer that indicates the position where the element should be
-     *                 placed.
-     *                 NB. the returned value in this case is equal to ((index * -1) - 1), so it goes from -1 to (-size).
+    /*
+     * Binary search of the given key in the array.
+     *
+     * found     -> return the index of the key in the keys array (index in range [0, size - 1]).
+     * not found -> return a negative index that indicates the slot in which the key should be placed in the keys array
+     *              (index in range [-1, -size]).
      */
     private int binarySearch(final K key) {
         return this.binarySearch(key, 0, this.size - 1);
@@ -184,11 +185,10 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
 
     private int binarySearch(final K key, final int start, final int end) {
         if (start > end) {
-            return -(1 + start);
+            return -(start + 1);
         }
 
-        final int middle = (start + end) / 2;
-
+        final var middle = (start + end) / 2;
         switch (this.keys[middle].compareTo(key)) {
             case 1:
                 return this.binarySearch(key, start, middle - 1);
