@@ -44,7 +44,7 @@ public class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
     }
 
     public static <K1 extends Comparable<K1>, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
-        var newInstance = new ArrayOrdinato<K1, V1>();
+        final var newInstance = new ArrayOrdinato<K1, V1>();
         newInstance.reserve(map.size());
         map.stream().forEach(e -> newInstance.add(e.key, e.value));
         return newInstance;
