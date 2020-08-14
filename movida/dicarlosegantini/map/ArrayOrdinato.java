@@ -155,7 +155,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     public void reserve(final int additionalItems) {
         assert 0 <= additionalItems;
 
-        if ((this.size + additionalItems) <= this.keys.length) {
+        if ((this.size + additionalItems) <= this.capacity()) {
             return;
         }
 
