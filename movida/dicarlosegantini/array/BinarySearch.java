@@ -36,9 +36,17 @@ import java.util.Comparator;
  * absent   -> return the index in which the item would be placed in the array (index is in range [-1, -length]).
  */
 public final class BinarySearch {
-    public static final BinarySearch instance = new BinarySearch();
+    private static BinarySearch instance = null;
 
     private BinarySearch() {}
+
+    public static BinarySearch getInstance() {
+        if (null == instance) {
+            instance = new BinarySearch();
+        }
+
+        return instance;
+    }
 
     public <T> int binarySearch(final T[] array, final int length, final T item, final Comparator<T> comparator) {
         return this.binarySearchRecursive(array, item, comparator, 0, length - 1);

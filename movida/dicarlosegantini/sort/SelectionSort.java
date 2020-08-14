@@ -30,9 +30,17 @@ package movida.dicarlosegantini.sort;
 import java.util.Comparator;
 
 public final class SelectionSort implements ISort {
-    public static final SelectionSort instance = new SelectionSort();
+    private static SelectionSort instance = null;
 
     private SelectionSort() {}
+
+    public static SelectionSort getInstance() {
+        if (null == instance) {
+            instance = new SelectionSort();
+        }
+
+        return instance;
+    }
 
     @Override
     public <T extends Comparable<T>> void sort(T[] array) {

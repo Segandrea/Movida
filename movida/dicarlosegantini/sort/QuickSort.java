@@ -31,10 +31,18 @@ import java.util.Comparator;
 import java.util.Random;
 
 public final class QuickSort implements ISort {
-    public static final QuickSort instance = new QuickSort();
     private static final Random rand = new Random();
+    private static QuickSort instance = null;
 
     private QuickSort() {}
+
+    public static QuickSort getInstance() {
+        if (null == instance) {
+            instance = new QuickSort();
+        }
+
+        return instance;
+    }
 
     private static <T> void swap(T[] array, final int firstIndex, final int lastIndex) {
         final var tmp = array[firstIndex];
@@ -42,7 +50,8 @@ public final class QuickSort implements ISort {
         array[lastIndex] = tmp;
     }
 
-    private static <T> int partition(T[] array, final Comparator<T> comparator, final int firstIndex, final int lastIndex) {
+    private static <T> int partition(T[] array, final Comparator<T> comparator,
+                                     final int firstIndex, final int lastIndex) {
         // swap firstIndex with a random pivot to optimize the quicksort
         swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
@@ -67,7 +76,8 @@ public final class QuickSort implements ISort {
         }
     }
 
-    private static <T> void recurse(T[] array, final Comparator<T> comparator, final int firstIndex, final int lastIndex) {
+    private static <T> void recurse(T[] array, final Comparator<T> comparator,
+                                    final int firstIndex, final int lastIndex) {
         if (firstIndex < lastIndex) {
             final var pivotIndex = partition(array, comparator, firstIndex, lastIndex);
             recurse(array, comparator, firstIndex, pivotIndex - 1);

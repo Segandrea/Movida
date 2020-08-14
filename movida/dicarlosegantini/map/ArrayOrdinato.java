@@ -175,6 +175,6 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     }
 
     private int binarySearch(final K key) {
-        return BinarySearch.instance.binarySearch(this.keys, this.size, key);
+        return BinarySearch.getInstance().binarySearch(this.keys, this.size, key);
     }
 }
