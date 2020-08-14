@@ -185,6 +185,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
 
     @Override
     public void clear() {
+        Arrays.fill(this.values, null);
         Arrays.fill(this.keys, null);
         this.size = 0;
     }
