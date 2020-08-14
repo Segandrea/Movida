@@ -29,19 +29,19 @@ package movida.dicarlosegantini.sort;
 
 public class SelectionSort implements ISort {
     @Override
-    public <T extends Comparable<T>> void sort(T[] arr) {
-        for (int lastIndex = 0; lastIndex < arr.length; ++lastIndex) {
-            int minIndex = lastIndex;
+    public <T extends Comparable<T>> void sort(T[] array) {
+        for (int lastIndex = 0; lastIndex < array.length; ++lastIndex) {
+            var minIndex = lastIndex;
 
-            for (int i = lastIndex + 1; i < arr.length; ++i) {
-                if (arr[i].compareTo(arr[minIndex]) < 0) {
+            for (int i = lastIndex + 1; i < array.length; ++i) {
+                if (array[i].compareTo(array[minIndex]) < 0) {
                     minIndex = i;
                 }
             }
 
-            final var tmp = arr[lastIndex];
-            arr[lastIndex] = arr[minIndex];
-            arr[minIndex] = tmp;
+            final var tmp = array[lastIndex];
+            array[lastIndex] = array[minIndex];
+            array[minIndex] = tmp;
         }
     }
 }

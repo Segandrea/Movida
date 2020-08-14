@@ -28,5 +28,5 @@
 package movida.dicarlosegantini.sort;
 
 public interface ISort {
-    <T extends Comparable<T>> void sort(T[] arr);
+    <T extends Comparable<T>> void sort(T[] array);
 }

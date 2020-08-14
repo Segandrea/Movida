@@ -32,26 +32,26 @@ import java.util.Random;
 public class QuickSort implements ISort {
     private static final Random rand = new Random();
 
-    private static <T> void swap(T[] arr, final int firstIndex, final int lastIndex) {
-        final var tmp = arr[firstIndex];
-        arr[firstIndex] = arr[lastIndex];
-        arr[lastIndex] = tmp;
+    private static <T> void swap(T[] array, final int firstIndex, final int lastIndex) {
+        final var tmp = array[firstIndex];
+        array[firstIndex] = array[lastIndex];
+        array[lastIndex] = tmp;
     }
 
-    private static <T extends Comparable<T>> int partition(T[] arr, final int firstIndex, final int lastIndex) {
-        //swap firstIndex with a random pivot to optimize the quicksort
-        swap(arr, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
+    private static <T extends Comparable<T>> int partition(T[] array, final int firstIndex, final int lastIndex) {
+        // swap firstIndex with a random pivot to optimize the quicksort
+        swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
-        final var pivotValue = arr[firstIndex];
+        final var pivotValue = array[firstIndex];
         var sup = lastIndex;
         var inf = firstIndex;
 
         while (true) {
-            while (arr[inf].compareTo(pivotValue) < 0) {
+            while (array[inf].compareTo(pivotValue) < 0) {
                 inf += 1;
             }
 
-            while (arr[sup].compareTo(pivotValue) > 0) {
+            while (array[sup].compareTo(pivotValue) > 0) {
                 sup -= 1;
             }
 
@@ -59,20 +59,20 @@ public class QuickSort implements ISort {
                 return sup;
             }
 
-            swap(arr, inf, sup);
+            swap(array, inf, sup);
         }
     }
 
-    private static <T extends Comparable<T>> void recurse(T[] arr, final int firstIndex, final int lastIndex) {
+    private static <T extends Comparable<T>> void recurse(T[] array, final int firstIndex, final int lastIndex) {
         if (firstIndex < lastIndex) {
-            final var pivotIndex = partition(arr, firstIndex, lastIndex);
-            recurse(arr, firstIndex, pivotIndex - 1);
-            recurse(arr, pivotIndex + 1, lastIndex);
+            final var pivotIndex = partition(array, firstIndex, lastIndex);
+            recurse(array, firstIndex, pivotIndex - 1);
+            recurse(array, pivotIndex + 1, lastIndex);
         }
     }
 
     @Override
-    public <T extends Comparable<T>> void sort(T[] arr) {
-        recurse(arr, 0, arr.length - 1);
+    public <T extends Comparable<T>> void sort(T[] array) {
+        recurse(array, 0, array.length - 1);
     }
 }
