@@ -44,12 +44,15 @@ public final class SelectionSort implements ISort {
 
     @Override
     public <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator) {
-        final var ARRAY_SIZE = endIndex + 1;
+        assert 0 <= startIndex;
+        assert -1 <= endIndex;
+        assert endIndex < array.length;
+        final var SIZE = endIndex + 1;
 
-        for (int lastIndex = startIndex; lastIndex < ARRAY_SIZE; ++lastIndex) {
+        for (int lastIndex = startIndex; lastIndex < SIZE; ++lastIndex) {
             var minIndex = lastIndex;
 
-            for (int i = lastIndex + 1; i < ARRAY_SIZE; ++i) {
+            for (int i = lastIndex + 1; i < SIZE; ++i) {
                 if (0 > comparator.compare(array[i], array[minIndex])) {
                     minIndex = i;
                 }

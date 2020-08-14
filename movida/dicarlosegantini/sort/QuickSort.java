@@ -87,6 +87,9 @@ public final class QuickSort implements ISort {
 
     @Override
     public <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator) {
+        assert 0 <= startIndex;
+        assert -1 <= endIndex;
+        assert endIndex < array.length;
         recurse(array, startIndex, endIndex, comparator);
     }
 }

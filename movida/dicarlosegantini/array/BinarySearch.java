@@ -48,6 +48,10 @@ public final class BinarySearch {
 
     public static <T> int search(final T[] array, final int startIndex, final int endIndex,
                                  final T item, final Comparator<T> comparator) {
+        assert 0 <= startIndex;
+        assert -1 <= endIndex;
+        assert endIndex < array.length;
+
         if (startIndex > endIndex) {
             return -(startIndex + 1);
         }

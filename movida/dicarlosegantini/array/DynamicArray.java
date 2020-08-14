@@ -129,8 +129,8 @@ public final class DynamicArray<T> {
     }
 
     public T[] slice(final IntFunction<T[]> sliceBuilder, final int startIndex, final int endIndex) {
-        assert 0 <= endIndex;
         assert 0 <= startIndex;
+        assert -1 <= endIndex;
         assert endIndex < this.size;
         assert startIndex <= endIndex;
 
