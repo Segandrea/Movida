@@ -53,7 +53,7 @@ public final class SelectionSort implements ISort {
             var minIndex = lastIndex;
 
             for (int i = lastIndex + 1; i < array.length; ++i) {
-                if (comparator.compare(array[i], array[minIndex]) < 0) {
+                if (0 > comparator.compare(array[i], array[minIndex])) {
                     minIndex = i;
                 }
             }

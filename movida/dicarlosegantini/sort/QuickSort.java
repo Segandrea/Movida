@@ -60,11 +60,11 @@ public final class QuickSort implements ISort {
         var inf = firstIndex;
 
         while (true) {
-            while (comparator.compare(array[inf], pivotValue) < 0) {
+            while (0 > comparator.compare(array[inf], pivotValue)) {
                 inf += 1;
             }
 
-            while (comparator.compare(array[sup], pivotValue) > 0) {
+            while (0 < comparator.compare(array[sup], pivotValue)) {
                 sup -= 1;
             }
 

@@ -58,7 +58,7 @@ class IMapTest {
 
     void testDel(IMap<Integer, Integer> sut) {
         final int SIZE = 16;
-        for (int i = 0; i < SIZE; ++i) {
+        for (int i = 0; SIZE > i; ++i) {
             assertNull(sut.add(i, i));
             assertEquals(i + 1, sut.size());
             assertTrue(sut.has(i));
@@ -66,11 +66,11 @@ class IMapTest {
         }
 
         var keys = new ArrayList<>();
-        for (int i = 0; i < SIZE; ++i) {
+        for (int i = 0; SIZE > i; ++i) {
             keys.add(i);
         }
 
-        for (int i = 0; i < SIZE; ++i) {
+        for (int i = 0; SIZE > i; ++i) {
             Integer k = -1;
 
             switch (i % 3) {
@@ -98,7 +98,7 @@ class IMapTest {
     }
 
     void testAdd(IMap<Integer, Integer> sut) {
-        for (int i = 0; i < 16; ++i) {
+        for (int i = 0; 16 > i; ++i) {
             assertNull(sut.add(i, i));
             assertEquals(i + 1, sut.size());
             assertTrue(sut.has(i));
@@ -172,7 +172,7 @@ class IMapTest {
     void testStream(IMap<Integer, Integer> sut) {
         assertTrue(sut.empty());
         assertEquals(0, sut.stream().count());
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 10);
             assertEquals(
                     sut.size(),
@@ -189,7 +189,7 @@ class IMapTest {
         assertTrue(sut.empty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             source.add(i, i * 10);
         }
 
@@ -211,7 +211,7 @@ class IMapTest {
         assertTrue(sut.empty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             source.add(i, i * 10);
         }
 
@@ -229,7 +229,7 @@ class IMapTest {
 
     void testClear(IMap<Integer, Integer> sut) {
         assertTrue(sut.empty());
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 10);
         }
         assertFalse(sut.empty());
@@ -240,12 +240,12 @@ class IMapTest {
         assertEquals(0, sut.size());
         assertEquals(0, sut.stream().count());
 
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             assertFalse(sut.has(i));
             assertNull(sut.get(i));
         }
 
-        for (int i = 1; i < 10; ++i) {
+        for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 100);
         }
         assertFalse(sut.empty());

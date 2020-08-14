@@ -55,29 +55,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
 
     private static <K1> long computeHash(final K1 key) {
         final var hashCode = key.hashCode();
-        return ((long) Math.abs(hashCode)) + ((hashCode < 0) ? ((long) (Integer.MAX_VALUE)) : 0L);
-    }
-
-    @Override
-    public int size() {
-        return this.size;
-    }
-
-    @Override
-    public void clear() {
-        Arrays.fill(this.keys, null);
-        this.size = 0;
-    }
-
-    @Override
-    public int capacity() {
-        return this.keys.length;
-    }
-
-    @Override
-    public boolean has(final K key) {
-        assert null != key;
-        return this.indexOf(key) >= 0;
+        return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
     @Override
@@ -94,7 +72,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         this.reserve(1);
         var index = this.indexOf(key);
 
-        if (index >= 0) {
+        if (0 <= index) {
             return this.values[index];
         }
 
@@ -111,13 +89,19 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return value;
     }
 
+    @Override
+    public V get(final K key) {
+        assert null != key;
+        final var index = this.indexOf(key);
+        return (0 <= index) ? this.values[index] : null;
+    }
 
     @Override
     public V del(final K key) {
         assert null != key;
         final var index = this.indexOf(key);
 
-        if (index >= 0) {
+        if (0 <= index) {
             this.size -= 1;
             this.keys[index] = this.DELETED;
             return this.values[index];
@@ -127,17 +111,16 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     @Override
-    public V get(final K key) {
+    public boolean has(final K key) {
         assert null != key;
-        final var index = this.indexOf(key);
-        return (index >= 0) ? this.values[index] : null;
+        return 0 <= this.indexOf(key);
     }
 
     @Override
     public Stream<Entry<K, V>> stream() {
         return IntStream
                 .range(0, this.capacity())
-                .filter(i -> this.keys[i] != null)
+                .filter(i -> null != this.keys[i])
                 .limit(this.size)
                 .mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
     }
@@ -166,6 +149,22 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                 this.rawAdd(k, tmpValues[i]);
             }
         }
+    }
+
+    @Override
+    public int capacity() {
+        return this.keys.length;
+    }
+
+    @Override
+    public int size() {
+        return this.size;
+    }
+
+    @Override
+    public void clear() {
+        Arrays.fill(this.keys, null);
+        this.size = 0;
     }
 
     /*
@@ -214,7 +213,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         assert null != value;
         var index = this.indexOf(key);
 
-        if (index >= 0) {
+        if (0 <= index) {
             final var oldValue = this.values[index];
             this.values[index] = value;
             return oldValue;

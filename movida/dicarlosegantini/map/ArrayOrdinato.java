@@ -58,7 +58,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         assert null != value;
         var index = this.binarySearch(key);
 
-        if (index >= 0) {
+        if (0 <= index) {
             final var tmp = this.values[index];
             this.values[index] = value;
             return tmp;
@@ -83,7 +83,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         assert null != key;
         var index = this.binarySearch(key);
 
-        if (index >= 0) {
+        if (0 <= index) {
             return this.values[index];
         }
 
@@ -108,7 +108,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     public V get(final K key) {
         assert null != key;
         final var index = this.binarySearch(key);
-        return (index >= 0) ? this.values[index] : null;
+        return (0 <= index) ? this.values[index] : null;
     }
 
     @Override
@@ -116,7 +116,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         assert null != key;
         final var index = this.binarySearch(key);
 
-        if (index < 0) {
+        if (0 > index) {
             return null;
         }
 
@@ -132,22 +132,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     @Override
     public boolean has(final K key) {
         assert null != key;
-        return this.binarySearch(key) >= 0;
-    }
-
-    @Override
-    public int capacity() {
-        return this.keys.length;
-    }
-
-    @Override
-    public int size() {
-        return this.size;
-    }
-
-    @Override
-    public void clear() {
-        this.size = 0;
+        return 0 <= this.binarySearch(key);
     }
 
     @Override
@@ -165,7 +150,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         final var tmpValues = (V[]) new Object[newCapacity];
         final var tmpKeys = (K[]) new Comparable[newCapacity];
 
-        if (this.size > 0) {
+        if (0 < this.size) {
             System.arraycopy(this.values, 0, tmpValues, 0, this.size);
             System.arraycopy(this.keys, 0, tmpKeys, 0, this.size);
         }
@@ -174,7 +159,22 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
         this.keys = tmpKeys;
     }
 
+    @Override
+    public int capacity() {
+        return this.keys.length;
+    }
+
+    @Override
+    public int size() {
+        return this.size;
+    }
+
+    @Override
+    public void clear() {
+        this.size = 0;
+    }
+
     private int binarySearch(final K key) {
-        return BinarySearch.getInstance().binarySearch(this.keys, this.size, key);
+        return BinarySearch.search(this.keys, this.size, key);
     }
 }

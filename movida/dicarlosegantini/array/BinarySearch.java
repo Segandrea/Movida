@@ -32,44 +32,39 @@ import java.util.Comparator;
 /**
  * Binary search the given item in the array.
  * <p>
- * present  -> return the index of the item in the array (index is in range [0, length - 1]).
- * absent   -> return the index in which the item would be placed in the array (index is in range [-1, -length]).
+ * present -> return the index of the item in the array (index is in range [0, length - 1]).
+ * absent  -> return the index in which the item would be placed in the array (index is in range [-1, -length]).
  */
 public final class BinarySearch {
-    private static BinarySearch instance = null;
-
     private BinarySearch() {}
 
-    public static BinarySearch getInstance() {
-        if (null == instance) {
-            instance = new BinarySearch();
+    public static <T> int search(final T[] array, final int length, final T item, final Comparator<T> comparator) {
+        return search(array, 0, length - 1, item, comparator);
+    }
+
+    public static <T extends Comparable<T>> int search(final T[] array, final int length, final T item) {
+        return search(array, length, item, T::compareTo);
+    }
+
+    public static <T> int search(final T[] array, final int startIndex, final int endIndex,
+                                 final T item, final Comparator<T> comparator) {
+        if (startIndex > endIndex) {
+            return -(startIndex + 1);
         }
 
-        return instance;
-    }
-
-    public <T> int binarySearch(final T[] array, final int length, final T item, final Comparator<T> comparator) {
-        return this.binarySearchRecursive(array, item, comparator, 0, length - 1);
-    }
-
-    public <T extends Comparable<T>> int binarySearch(final T[] array, final int length, final T item) {
-        return this.binarySearch(array, length, item, T::compareTo);
-    }
-
-    private <T> int binarySearchRecursive(final T[] array, final T item, final Comparator<T> comparator,
-                                          final int start, final int end) {
-        if (start > end) {
-            return -(start + 1);
-        }
-
-        final var middle = (start + end) / 2;
+        final var middle = (startIndex + endIndex) / 2;
         switch (comparator.compare(array[middle], item)) {
             case 1:
-                return this.binarySearchRecursive(array, item, comparator, start, middle - 1);
+                return search(array, startIndex, middle - 1, item, comparator);
             case -1:
-                return this.binarySearchRecursive(array, item, comparator, middle + 1, end);
+                return search(array, middle + 1, endIndex, item, comparator);
             default:
                 return middle;
         }
+    }
+
+    public static <T extends Comparable<T>> int search(final T[] array, final int startIndex, final int endIndex,
+                                                       final T item) {
+        return search(array, startIndex, endIndex, item, T::compareTo);
     }
 }

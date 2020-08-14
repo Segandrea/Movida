@@ -178,7 +178,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
                 }
 
                 final var keyValue = line.split("[\\W]*:[\\W]*");
-                if (keyValue.length != 2) {
+                if (2 != keyValue.length) {
                     throw new MovidaFileException(/* parse error: bad key-value supplied */);
                 }
 
