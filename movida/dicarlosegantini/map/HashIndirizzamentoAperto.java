@@ -127,6 +127,8 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
 
     @SuppressWarnings({"unchecked"})
     public void reserve(final int additionalItems) {
+        assert 0 <= additionalItems;
+
         final float capacity = Math.max(this.capacity(), 1);
         final var loadFactor = (this.size + additionalItems) / capacity;
 

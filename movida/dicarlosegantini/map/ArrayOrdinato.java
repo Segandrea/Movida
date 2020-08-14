@@ -142,6 +142,8 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
 
     @SuppressWarnings({"unchecked"})
     public void reserve(final int additionalItems) {
+        assert 0 <= additionalItems;
+
         if ((this.size + additionalItems) <= this.keys.length) {
             return;
         }
