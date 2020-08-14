@@ -29,6 +29,7 @@
 package movida.dicarlosegantini;
 
 import movida.commons.*;
+import movida.dicarlosegantini.array.DynamicArray;
 import movida.dicarlosegantini.map.ArrayOrdinato;
 import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.map.IMap;
@@ -38,10 +39,13 @@ import movida.dicarlosegantini.sort.SelectionSort;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB {
+    final private DynamicArray<Movie> moviesOrderedByVotes;
+    final private DynamicArray<Movie> moviesOrderedByYear;
     private MapImplementation mapImplementation;
     private IMap<String, HashSet<Movie>> moviesByDirector;
     private IMap<String, HashSet<Movie>> moviesByActor;
@@ -51,6 +55,9 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     private ISort sortingAlgorithm;
 
     private MovidaCore() {
+        this.moviesOrderedByVotes = new DynamicArray<>();
+        this.moviesOrderedByYear = new DynamicArray<>();
+
         this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
 
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
@@ -90,30 +97,28 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         writer.newLine();
     }
 
-    private <K extends Comparable<K>, V> IMap<K, V> instanceMap() {
-        if (MapImplementation.ArrayOrdinato == this.mapImplementation) {
-            return new ArrayOrdinato<>();
-        }
-        return new HashIndirizzamentoAperto<>();
-    }
-
     private void loadMovie(final IMap<String, String> movieData) {
         final var title = movieData.get("title");
         final var year = Integer.parseInt(movieData.get("year"));
+        final var votes = Integer.parseInt(movieData.get("votes"));
         final var director = new Person(movieData.get("director"));
         final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
                 .map(Person::new)
                 .toArray(Person[]::new);
-        final var votes = Integer.parseInt(movieData.get("votes"));
 
         final var movie = new Movie(title, year, votes, cast, director);
 
+        this.moviesOrderedByVotes.binaryInsert(movie, Comparator.comparing(Movie::getVotes).reversed());
+        this.moviesOrderedByYear.binaryInsert(movie, Comparator.comparing(Movie::getYear).reversed());
+
         this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
         this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
+
         for (final var actor : movie.getCast()) {
             this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
             this.people.add(actor.getName(), actor);
         }
+
         this.people.add(movie.getDirector().getName(), movie.getDirector());
         this.movies.add(movie.getTitle(), movie);
     }
@@ -163,7 +168,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public void loadFromFile(File f) {
-        IMap<String, String> movieData = this.instanceMap();
+        final var movieData = new HashIndirizzamentoAperto<String, String>();
+        movieData.reserve(5);
 
         try {
             final var reader = new BufferedReader(new FileReader(f));
@@ -209,11 +215,10 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     public void saveToFile(File f) {
         try {
             final var writer = new BufferedWriter(new FileWriter(f));
-            final var iterator = this.movies.stream().iterator();
+            final var iterator = this.movies.values().iterator();
 
             while (iterator.hasNext()) {
-                final var entry = iterator.next();
-                saveMovieToFile(writer, entry.value);
+                saveMovieToFile(writer, iterator.next());
             }
 
             writer.flush();
@@ -226,6 +231,11 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public void clear() {
+        this.moviesOrderedByVotes.clear();
+        this.moviesOrderedByYear.clear();
+        this.moviesByDirector.clear();
+        this.moviesByActor.clear();
+        this.moviesByYear.clear();
         this.people.clear();
         this.movies.clear();
     }
@@ -245,6 +255,9 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         final var movie = this.movies.del(title.toLowerCase());
 
         if (null != movie) {
+            this.moviesOrderedByVotes.binaryRemove(movie, Comparator.comparing(Movie::getVotes).reversed());
+            this.moviesOrderedByYear.binaryRemove(movie, Comparator.comparing(Movie::getYear).reversed());
+
             this.moviesByDirector.get(movie.getDirector().getName()).remove(movie);
             this.moviesByYear.get(movie.getYear()).remove(movie);
 
@@ -270,11 +283,11 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public Movie[] getAllMovies() {
-        return this.movies.stream().map(entry -> entry.value).toArray(Movie[]::new);
+        return this.movies.values().toArray(Movie[]::new);
     }
 
     @Override
     public Person[] getAllPeople() {
-        return this.people.stream().map(entry -> entry.value).toArray(Person[]::new);
+        return this.people.values().toArray(Person[]::new);
     }
 }
