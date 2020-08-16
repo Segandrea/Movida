@@ -108,8 +108,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
         final var movie = new Movie(title, year, votes, cast, director);
 
-        this.moviesOrderedByVotes.binaryInsert(movie, Comparator.comparing(Movie::getVotes).reversed());
-        this.moviesOrderedByYear.binaryInsert(movie, Comparator.comparing(Movie::getYear).reversed());
+        this.moviesOrderedByVotes.add(movie, this.moviesOrderedByVotes.size());
+        this.moviesOrderedByYear.add(movie, this.moviesOrderedByYear.size());
 
         this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
         this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
@@ -209,6 +209,9 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         if (!movieData.empty()) {
             this.loadMovie(movieData);
         }
+
+        this.moviesOrderedByVotes.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getVotes).reversed());
+        this.moviesOrderedByYear.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getYear).reversed());
     }
 
     @Override
