@@ -27,8 +27,6 @@
 
 package movida.dicarlosegantini.array;
 
-import movida.dicarlosegantini.sort.ISort;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.IntFunction;
@@ -93,16 +91,23 @@ public final class DynamicArray<T> {
         return Arrays.stream(this.array).limit(this.size);
     }
 
-    public void sort(final ISort sortAlgorithm, final Comparator<T> comparator) {
-        sortAlgorithm.sort(this.array, this.size, comparator);
-    }
-
-    // TODO: docs
+    /**
+     * Binary search the given item in the array.
+     *
+     * @return present -> return the index of the item in the array (index is in range [0, size - 1]). absent  ->
+     * return the index in which the item would be placed in the array (index is in range [-1, -size]).
+     * @implNote The array must be already sorted using the same comparator function otherwise is UB.
+     */
     public int binarySearch(final T item, final Comparator<T> comparator) {
         return BinarySearch.search(this.array, this.size, item, comparator);
     }
 
-    // TODO: docs
+    /**
+     * Binary insert the given item into the array.
+     *
+     * @return true if the item was inserted, false when the item was already in the array.
+     * @implNote The array must be already sorted using the same comparator function otherwise is UB.
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean binaryInsert(final T item, final Comparator<T> comparator) {
         final var index = this.binarySearch(item, comparator);
@@ -115,7 +120,12 @@ public final class DynamicArray<T> {
         return true;
     }
 
-    // TODO: docs
+    /**
+     * Binary remove the given item from the array.
+     *
+     * @return true if the item was removed, false if the item was not found in the array.
+     * @implNote The array must be already sorted using the same comparator function otherwise is UB.
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean binaryRemove(final T item, final Comparator<T> comparator) {
         final var index = this.binarySearch(item, comparator);
@@ -134,7 +144,7 @@ public final class DynamicArray<T> {
         assert endIndex < this.size;
         assert startIndex <= endIndex;
 
-        final var SIZE = endIndex - startIndex;
+        final var SIZE = endIndex - startIndex + 1;
         final var sliceArray = sliceBuilder.apply(SIZE);
         System.arraycopy(this.array, startIndex, sliceArray, 0, SIZE);
 
