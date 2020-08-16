@@ -27,6 +27,8 @@
 
 package movida.dicarlosegantini.array;
 
+import movida.dicarlosegantini.sort.ISort;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.IntFunction;
@@ -89,6 +91,10 @@ public final class DynamicArray<T> {
 
     public Stream<T> stream() {
         return Arrays.stream(this.array).limit(this.size);
+    }
+
+    public void sort(final ISort sortingAlgorithm, final Comparator<T> comparator) {
+        sortingAlgorithm.sort(this.array, this.size, comparator);
     }
 
     /**

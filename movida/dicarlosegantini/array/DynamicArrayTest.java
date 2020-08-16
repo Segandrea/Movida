@@ -27,6 +27,7 @@
 
 package movida.dicarlosegantini.array;
 
+import movida.dicarlosegantini.sort.QuickSort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -292,5 +293,24 @@ class DynamicArrayTest {
         assertFalse(this.sut.empty());
         assertEquals(3, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
+    }
+
+    @Test
+    void sort() {
+        this.sut.add(3, this.sut.size());
+        this.sut.add(5, this.sut.size());
+        this.sut.add(1, this.sut.size());
+        this.sut.add(2, this.sut.size());
+        this.sut.add(4, this.sut.size());
+        this.sut.add(0, this.sut.size());
+
+        assertFalse(this.sut.empty());
+        assertEquals(6, this.sut.size());
+
+        this.sut.sort(QuickSort.getInstance(), Integer::compareTo);
+
+        for(int i = 0; i < this.sut.size(); ++i) {
+            assertEquals(i, this.sut.get(i));
+        }
     }
 }
