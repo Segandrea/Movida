@@ -62,7 +62,7 @@ public final class DynamicArray<T> {
         this.array = tmpArray;
     }
 
-    public void add(final T item, final int index) {
+    public void add(final int index, final T item) {
         assert index <= this.size;
 
         this.reserve(1);
@@ -72,7 +72,7 @@ public final class DynamicArray<T> {
     }
 
     public void append(final T item) {
-        this.add(item, this.size);
+        this.add(this.size, item);
     }
 
     public T del(final int index) {
@@ -87,6 +87,12 @@ public final class DynamicArray<T> {
 
     public T get(final int index) {
         return this.array[index];
+    }
+
+    public T replace(final int index, final T item) {
+        final var oldItem = this.array[index];
+        this.array[index] = item;
+        return oldItem;
     }
 
     public void clear() {
@@ -126,7 +132,7 @@ public final class DynamicArray<T> {
             return false;
         }
 
-        this.add(item, -(index + 1));
+        this.add(-(index + 1), item);
         return true;
     }
 

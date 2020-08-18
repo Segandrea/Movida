@@ -113,8 +113,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
         final var movie = new Movie(title, year, votes, cast, director);
 
-        this.moviesOrderedByVotes.add(movie, this.moviesOrderedByVotes.size());
-        this.moviesOrderedByYear.add(movie, this.moviesOrderedByYear.size());
+        this.moviesOrderedByVotes.append(movie);
+        this.moviesOrderedByYear.append(movie);
 
         this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
         this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);

@@ -42,7 +42,7 @@ class DynamicArrayTest {
         for (int i = 0; i < items; ++i) {
             final var currentSize = this.sut.size();
 
-            this.sut.add(i, this.sut.size());
+            this.sut.append(i);
             assertFalse(this.sut.empty());
             assertEquals(currentSize + 1, this.sut.size());
             assertTrue(this.sut.size() <= this.sut.capacity());
@@ -102,7 +102,7 @@ class DynamicArrayTest {
 
     @Test
     void add() {
-        this.sut.add(1, 0);
+        this.sut.add(0, 1);
         assertFalse(this.sut.empty());
         assertEquals(1, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
@@ -117,7 +117,7 @@ class DynamicArrayTest {
         assertEquals(1, this.sut.get(1));
         assertArrayEquals(new Integer[]{0, 1}, this.sut.stream().toArray(Integer[]::new));
 
-        this.sut.add(2, this.sut.size());
+        this.sut.append(2);
         assertFalse(this.sut.empty());
         assertEquals(3, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
@@ -298,12 +298,12 @@ class DynamicArrayTest {
 
     @Test
     void sort() {
-        this.sut.add(3, this.sut.size());
-        this.sut.add(5, this.sut.size());
-        this.sut.add(1, this.sut.size());
-        this.sut.add(2, this.sut.size());
-        this.sut.add(4, this.sut.size());
-        this.sut.add(0, this.sut.size());
+        this.sut.append(3);
+        this.sut.append(5);
+        this.sut.append(1);
+        this.sut.append(2);
+        this.sut.append(4);
+        this.sut.append(0);
 
         assertFalse(this.sut.empty());
         assertEquals(6, this.sut.size());
@@ -312,6 +312,36 @@ class DynamicArrayTest {
 
         for (int i = 0; i < this.sut.size(); ++i) {
             assertEquals(i, this.sut.get(i));
+        }
+    }
+
+    @Test
+    void append() {
+        for (int x = 0; 10 > x; ++x) {
+            this.sut.append(x);
+            assertFalse(this.sut.empty());
+            assertEquals(x + 1, this.sut.size());
+            assertTrue(this.sut.size() <= this.sut.capacity());
+
+            for (int y = 0; x > y; ++y) {
+                assertEquals(y, this.sut.get(y));
+            }
+        }
+    }
+
+    @Test
+    void replace() {
+        this.seed(5);
+        final var CAPACITY = this.sut.capacity();
+        final var SIZE = this.sut.size();
+
+        for (int i = 0; SIZE > i; ++i) {
+            final var newItem = i * 10;
+
+            assertEquals(i, this.sut.replace(i, newItem));
+            assertEquals(CAPACITY, this.sut.capacity());
+            assertEquals(SIZE, this.sut.size());
+            assertEquals(newItem, this.sut.get(i));
         }
     }
 }
