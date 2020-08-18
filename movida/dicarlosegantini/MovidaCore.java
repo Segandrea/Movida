@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     final private DynamicArray<Person> actorsOrderedByActivity;
@@ -51,7 +52,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     private IMap<String, HashSet<Movie>> moviesByDirector;
     private IMap<String, HashSet<Movie>> moviesByActor;
     private IMap<Integer, HashSet<Movie>> moviesByYear;
-    private IMap<String, Person> people;
+    private IMap<String, Person> directors;
+    private IMap<String, Person> actors;
     private IMap<String, Movie> movies;
     private ISort sortingAlgorithm;
 
@@ -65,7 +67,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
         this.moviesByActor = new HashIndirizzamentoAperto<>();
         this.moviesByYear = new HashIndirizzamentoAperto<>();
-        this.people = new HashIndirizzamentoAperto<>();
+        this.directors = new HashIndirizzamentoAperto<>();
+        this.actors = new HashIndirizzamentoAperto<>();
         this.movies = new HashIndirizzamentoAperto<>();
 
         this.sortingAlgorithm = QuickSort.getInstance();
@@ -118,16 +121,10 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
         for (final var actor : movie.getCast()) {
             this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
-            this.people.add(actor.getName(), actor);
-            this.actorsOrderedByActivity.binaryInsert(actor, (a, b) -> {
-                final Integer aActivity = this.moviesByActor.get(a.getName()).size();
-                final Integer bActivity = this.moviesByActor.get(b.getName()).size();
-
-                return -(aActivity.compareTo(bActivity));
-            });
+            this.actors.add(actor.getName(), actor);
         }
 
-        this.people.add(movie.getDirector().getName(), movie.getDirector());
+        this.directors.add(movie.getDirector().getName(), movie.getDirector());
         this.movies.add(movie.getTitle(), movie);
     }
 
@@ -155,14 +152,16 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
                     this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
                     this.moviesByActor = ArrayOrdinato.from(this.moviesByActor);
                     this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
-                    this.people = ArrayOrdinato.from(this.people);
+                    this.directors = ArrayOrdinato.from(this.directors);
+                    this.actors = ArrayOrdinato.from(this.actors);
                     this.movies = ArrayOrdinato.from(this.movies);
                     break;
                 case HashIndirizzamentoAperto:
                     this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
                     this.moviesByActor = HashIndirizzamentoAperto.from(this.moviesByActor);
                     this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
-                    this.people = HashIndirizzamentoAperto.from(this.people);
+                    this.directors = HashIndirizzamentoAperto.from(this.directors);
+                    this.actors = HashIndirizzamentoAperto.from(this.actors);
                     this.movies = HashIndirizzamentoAperto.from(this.movies);
                     break;
                 default:
@@ -220,6 +219,15 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
         this.moviesOrderedByVotes.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getVotes).reversed());
         this.moviesOrderedByYear.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getYear).reversed());
+
+        this.actorsOrderedByActivity.clear();
+        this.actors.values().forEach(this.actorsOrderedByActivity::append);
+        this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
+            final Integer aActivity = this.moviesByActor.get(a.getName()).size();
+            final Integer bActivity = this.moviesByActor.get(b.getName()).size();
+
+            return -(aActivity.compareTo(bActivity));
+        });
     }
 
     @Override
@@ -248,7 +256,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         this.moviesByDirector.clear();
         this.moviesByActor.clear();
         this.moviesByYear.clear();
-        this.people.clear();
+        this.directors.clear();
+        this.actors.clear();
         this.movies.clear();
     }
 
@@ -259,7 +268,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public int countPeople() {
-        return this.people.size();
+        return this.directors.size() + this.actors.size();
     }
 
     @Override
@@ -307,7 +316,10 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public Person getPersonByName(final String name) {
-        return this.people.get(name.toLowerCase());
+        final var personName = name.toLowerCase();
+        final var actor = this.actors.get(personName);
+
+        return (null != actor) ? actor : this.directors.get(personName);
     }
 
     @Override
@@ -317,6 +329,6 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public Person[] getAllPeople() {
-        return this.people.values().toArray(Person[]::new);
+        return Stream.concat(this.actors.values(), this.directors.values()).toArray(Person[]::new);
     }
 }
