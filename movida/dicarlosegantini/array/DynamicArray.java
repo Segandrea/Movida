@@ -71,6 +71,10 @@ public final class DynamicArray<T> {
         this.size += 1;
     }
 
+    public void append(final T item) {
+        this.add(item, this.size);
+    }
+
     public T del(final int index) {
         assert index < this.size;
 

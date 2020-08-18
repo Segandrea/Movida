@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB {
+    final private DynamicArray<Person> actorsOrderedByActivity;
     final private DynamicArray<Movie> moviesOrderedByVotes;
     final private DynamicArray<Movie> moviesOrderedByYear;
     private MapImplementation mapImplementation;
@@ -55,6 +56,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     private ISort sortingAlgorithm;
 
     private MovidaCore() {
+        this.actorsOrderedByActivity = new DynamicArray<>();
         this.moviesOrderedByVotes = new DynamicArray<>();
         this.moviesOrderedByYear = new DynamicArray<>();
 
@@ -117,6 +119,12 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
         for (final var actor : movie.getCast()) {
             this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
             this.people.add(actor.getName(), actor);
+            this.actorsOrderedByActivity.binaryInsert(actor, (a, b) -> {
+                final Integer aActivity = this.moviesByActor.get(a.getName()).size();
+                final Integer bActivity = this.moviesByActor.get(b.getName()).size();
+
+                return -(aActivity.compareTo(bActivity));
+            });
         }
 
         this.people.add(movie.getDirector().getName(), movie.getDirector());
@@ -234,6 +242,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
 
     @Override
     public void clear() {
+        this.actorsOrderedByActivity.clear();
         this.moviesOrderedByVotes.clear();
         this.moviesOrderedByYear.clear();
         this.moviesByDirector.clear();
@@ -264,8 +273,25 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
             this.moviesByDirector.get(movie.getDirector().getName()).remove(movie);
             this.moviesByYear.get(movie.getYear()).remove(movie);
 
+            boolean actorsOrderedByActivityNeedsToBeSorted = false;
             for (final var actor : movie.getCast()) {
-                this.moviesByActor.get(actor.getName()).remove(movie);
+                final var moviesPerActor = this.moviesByActor.get(actor.getName());
+                moviesPerActor.remove(movie);
+
+                if (moviesPerActor.isEmpty()) {
+                    this.actorsOrderedByActivity.binaryRemove(actor, Comparator.comparing(Person::getName));
+                } else {
+                    actorsOrderedByActivityNeedsToBeSorted = true;
+                }
+            }
+
+            if (actorsOrderedByActivityNeedsToBeSorted) {
+                this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
+                    final Integer aActivity = this.moviesByActor.get(a.getName()).size();
+                    final Integer bActivity = this.moviesByActor.get(b.getName()).size();
+
+                    return -(aActivity.compareTo(bActivity));
+                });
             }
 
             return true;
