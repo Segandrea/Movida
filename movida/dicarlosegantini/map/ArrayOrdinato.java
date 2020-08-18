@@ -27,23 +27,19 @@
 
 package movida.dicarlosegantini.map;
 
-import movida.dicarlosegantini.array.BinarySearch;
+import movida.dicarlosegantini.array.DynamicArray;
 
-import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, V> {
-    private V[] values;
-    private K[] keys;
-    private int size;
+    private final DynamicArray<V> values;
+    private final DynamicArray<K> keys;
 
-    @SuppressWarnings("unchecked")
     public ArrayOrdinato() {
-        this.values = (V[]) new Object[0];
-        this.keys = (K[]) new Comparable[0];
-        this.size = 0;
+        this.values = new DynamicArray<>();
+        this.keys = new DynamicArray<>();
     }
 
     public static <K1 extends Comparable<K1>, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
@@ -57,24 +53,15 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     public V add(final K key, final V value) {
         assert null != key;
         assert null != value;
-        var index = this.binarySearch(key);
+        var index = this.keys.binarySearch(key, K::compareTo);
 
         if (0 <= index) {
-            final var tmp = this.values[index];
-            this.values[index] = value;
-            return tmp;
+            return this.values.replace(index, value);
         }
 
         index = -(index + 1);
-        assert index <= this.size;
-
-        this.reserve(1);
-        System.arraycopy(this.values, index, this.values, index + 1, this.size - index);
-        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
-
-        this.values[index] = value;
-        this.keys[index] = key;
-        this.size += 1;
+        this.keys.add(index, key);
+        this.values.add(index, value);
 
         return null;
     }
@@ -82,25 +69,18 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     @Override
     public V getOrAdd(final K key, final Supplier<V> supplier) {
         assert null != key;
-        var index = this.binarySearch(key);
+        var index = this.keys.binarySearch(key, K::compareTo);
 
         if (0 <= index) {
-            return this.values[index];
+            return this.values.get(index);
         }
-
-        index = -(index + 1);
-        assert index <= this.size;
 
         final var value = supplier.get();
         assert null != value;
 
-        this.reserve(1);
-        System.arraycopy(this.values, index, this.values, index + 1, this.size - index);
-        System.arraycopy(this.keys, index, this.keys, index + 1, this.size - index);
-
-        this.values[index] = value;
-        this.keys[index] = key;
-        this.size += 1;
+        index = -(index + 1);
+        this.keys.add(index, key);
+        this.values.add(index, value);
 
         return value;
     }
@@ -108,86 +88,63 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     @Override
     public V get(final K key) {
         assert null != key;
-        final var index = this.binarySearch(key);
-        return (0 <= index) ? this.values[index] : null;
+        final var index = this.keys.binarySearch(key, K::compareTo);
+        return (0 <= index) ? this.values.get(index) : null;
     }
 
     @Override
     public V del(final K key) {
         assert null != key;
-        final var index = this.binarySearch(key);
+        final var index = this.keys.binarySearch(key, K::compareTo);
 
         if (0 > index) {
             return null;
         }
 
-        final var outValue = this.values[index];
-
-        System.arraycopy(this.values, index + 1, this.values, index, this.size - index - 1);
-        System.arraycopy(this.keys, index + 1, this.keys, index, this.size - index - 1);
-        this.size -= 1;
-
-        return outValue;
+        this.keys.del(index);
+        return this.values.del(index);
     }
 
     @Override
     public boolean has(final K key) {
         assert null != key;
-        return 0 <= this.binarySearch(key);
+        return 0 <= this.keys.binarySearch(key, K::compareTo);
     }
 
     @Override
     public Stream<K> keys() {
-        return Arrays.stream(this.keys).limit(this.size);
+        return this.keys.stream();
     }
 
     @Override
     public Stream<V> values() {
-        return Arrays.stream(this.values).limit(this.size);
+        return this.values.stream();
     }
 
     @Override
     public Stream<Entry<K, V>> stream() {
-        return IntStream.range(0, this.size).mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
+        return IntStream.range(0, this.size()).mapToObj(i -> new Entry<>(this.keys.get(i), this.values.get(i)));
     }
 
-    @SuppressWarnings({"unchecked"})
     public void reserve(final int additionalItems) {
         assert 0 <= additionalItems;
-
-        if ((this.size + additionalItems) <= this.capacity()) {
-            return;
-        }
-
-        final var newCapacity = (int) Math.ceil((this.size + additionalItems) / 0.6);
-        final var tmpValues = (V[]) new Object[newCapacity];
-        final var tmpKeys = (K[]) new Comparable[newCapacity];
-
-        if (0 < this.size) {
-            System.arraycopy(this.values, 0, tmpValues, 0, this.size);
-            System.arraycopy(this.keys, 0, tmpKeys, 0, this.size);
-        }
-
-        this.values = tmpValues;
-        this.keys = tmpKeys;
+        this.values.reserve(additionalItems);
+        this.keys.reserve(additionalItems);
     }
 
     @Override
     public int capacity() {
-        return this.keys.length;
+        return this.keys.capacity();
     }
 
     @Override
     public int size() {
-        return this.size;
+        return this.keys.size();
     }
 
     @Override
     public void clear() {
-        this.size = 0;
-    }
-
-    private int binarySearch(final K key) {
-        return BinarySearch.search(this.keys, this.size, key);
+        this.values.clear();
+        this.keys.clear();
     }
 }
