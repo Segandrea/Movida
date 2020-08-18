@@ -25,7 +25,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// TODO: replace java.util.HashSet with custom set implementation
 package movida.dicarlosegantini;
 
 import movida.commons.*;
@@ -33,6 +32,7 @@ import movida.dicarlosegantini.array.DynamicArray;
 import movida.dicarlosegantini.map.ArrayOrdinato;
 import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.map.IMap;
+import movida.dicarlosegantini.set.HashSet;
 import movida.dicarlosegantini.sort.ISort;
 import movida.dicarlosegantini.sort.QuickSort;
 import movida.dicarlosegantini.sort.SelectionSort;
@@ -40,7 +40,6 @@ import movida.dicarlosegantini.sort.SelectionSort;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -279,15 +278,15 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
             this.moviesOrderedByVotes.binaryRemove(movie, Comparator.comparing(Movie::getVotes).reversed());
             this.moviesOrderedByYear.binaryRemove(movie, Comparator.comparing(Movie::getYear).reversed());
 
-            this.moviesByDirector.get(movie.getDirector().getName()).remove(movie);
-            this.moviesByYear.get(movie.getYear()).remove(movie);
+            this.moviesByDirector.get(movie.getDirector().getName()).del(movie);
+            this.moviesByYear.get(movie.getYear()).del(movie);
 
             boolean actorsOrderedByActivityNeedsToBeSorted = false;
             for (final var actor : movie.getCast()) {
                 final var moviesPerActor = this.moviesByActor.get(actor.getName());
-                moviesPerActor.remove(movie);
+                moviesPerActor.del(movie);
 
-                if (moviesPerActor.isEmpty()) {
+                if (moviesPerActor.empty()) {
                     this.actorsOrderedByActivity.binaryRemove(actor, Comparator.comparing(Person::getName));
                 } else {
                     actorsOrderedByActivityNeedsToBeSorted = true;
