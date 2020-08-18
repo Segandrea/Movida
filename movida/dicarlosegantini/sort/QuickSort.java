@@ -56,17 +56,17 @@ public final class QuickSort implements ISort {
         swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
         final var pivotValue = array[firstIndex];
-        var sup = lastIndex;
-        var inf = firstIndex;
+        var sup = lastIndex + 1;
+        var inf = firstIndex - 1;
 
         while (true) {
-            while (0 > comparator.compare(array[inf], pivotValue)) {
+            do {
                 inf += 1;
-            }
+            } while (0 > comparator.compare(array[inf], pivotValue));
 
-            while (0 < comparator.compare(array[sup], pivotValue)) {
+            do {
                 sup -= 1;
-            }
+            } while (0 < comparator.compare(array[sup], pivotValue));
 
             if (inf >= sup) {
                 return sup;
@@ -80,16 +80,16 @@ public final class QuickSort implements ISort {
                                     final Comparator<T> comparator) {
         if (firstIndex < lastIndex) {
             final var pivotIndex = partition(array, firstIndex, lastIndex, comparator);
-            recurse(array, firstIndex, pivotIndex - 1, comparator);
+            recurse(array, firstIndex, pivotIndex, comparator);
             recurse(array, pivotIndex + 1, lastIndex, comparator);
         }
     }
 
     @Override
-    public <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator) {
-        assert 0 <= startIndex;
-        assert -1 <= endIndex;
-        assert endIndex < array.length;
-        recurse(array, startIndex, endIndex, comparator);
+    public <T> void sort(T[] array, final int from, final int to, final Comparator<T> comparator) {
+        assert 0 <= from;
+        assert from <= to;
+        assert to <= array.length;
+        recurse(array, from, to - 1, comparator);
     }
 }

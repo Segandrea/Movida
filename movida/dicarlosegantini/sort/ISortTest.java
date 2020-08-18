@@ -38,6 +38,7 @@ class ISortTest {
         this.testOneElement(sut);
         this.testTwoElements(sut);
         this.testManyElements(sut);
+        this.testDuplicateElements(sut);
     }
 
     @org.junit.jupiter.api.Test
@@ -48,6 +49,7 @@ class ISortTest {
         this.testOneElement(sut);
         this.testTwoElements(sut);
         this.testManyElements(sut);
+        this.testDuplicateElements(sut);
     }
 
     void testNoElements(final ISort sut) {
@@ -95,5 +97,20 @@ class ISortTest {
         for (int i = 0; i < arr.length; ++i) {
             assertEquals(i, arr[i]);
         }
+    }
+
+    void testDuplicateElements(final ISort sut) {
+        Integer[] arr = {1, 0, 2, 4, 1, 3, 0, 2};
+
+        sut.sort(arr);
+        assertEquals(8, arr.length);
+        assertEquals(0, arr[0]);
+        assertEquals(0, arr[1]);
+        assertEquals(1, arr[2]);
+        assertEquals(1, arr[3]);
+        assertEquals(2, arr[4]);
+        assertEquals(2, arr[5]);
+        assertEquals(3, arr[6]);
+        assertEquals(4, arr[7]);
     }
 }

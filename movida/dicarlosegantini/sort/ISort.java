@@ -31,24 +31,35 @@ import java.util.Comparator;
 
 public interface ISort {
     default <T extends Comparable<T>> void sort(T[] array) {
-        this.sort(array, T::compareTo);
+        this.sort(array, 0, array.length, T::compareTo);
     }
 
     default <T extends Comparable<T>> void sort(T[] array, final int length) {
-        this.sort(array, length, T::compareTo);
+        this.sort(array, 0, length, T::compareTo);
     }
 
-    default <T extends Comparable<T>> void sort(T[] array, final int startIndex, final int endIndex) {
-        this.sort(array, startIndex, endIndex, T::compareTo);
+    /**
+     * @param array array to be sorted
+     * @param from  start index (inclusive)
+     * @param to    end index (exclusive)
+     */
+    default <T extends Comparable<T>> void sort(T[] array, final int from, final int to) {
+        this.sort(array, from, to, T::compareTo);
     }
 
     default <T> void sort(T[] array, final Comparator<T> comparator) {
-        this.sort(array, array.length, comparator);
+        this.sort(array, 0, array.length, comparator);
     }
 
     default <T> void sort(T[] array, final int length, final Comparator<T> comparator) {
-        this.sort(array, 0, length - 1, comparator);
+        this.sort(array, 0, length, comparator);
     }
 
-    <T> void sort(T[] array, final int startIndex, final int endIndex, final Comparator<T> comparator);
+    /**
+     * @param array      array to be sorted
+     * @param from       start index (inclusive)
+     * @param to         end index (exclusive)
+     * @param comparator function used to compare array items
+     */
+    <T> void sort(T[] array, final int from, final int to, final Comparator<T> comparator);
 }
