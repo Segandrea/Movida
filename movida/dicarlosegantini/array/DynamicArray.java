@@ -148,15 +148,14 @@ public final class DynamicArray<T> {
         return true;
     }
 
-    public T[] slice(final IntFunction<T[]> sliceBuilder, final int startIndex, final int endIndex) {
-        assert 0 <= startIndex;
-        assert -1 <= endIndex;
-        assert endIndex < this.size;
-        assert startIndex <= endIndex;
+    public T[] slice(final IntFunction<T[]> sliceBuilder, final int from, final int to) {
+        assert 0 <= from;
+        assert from <= to;
+        assert to <= this.size;
 
-        final var SIZE = endIndex - startIndex + 1;
+        final var SIZE = to - from;
         final var sliceArray = sliceBuilder.apply(SIZE);
-        System.arraycopy(this.array, startIndex, sliceArray, 0, SIZE);
+        System.arraycopy(this.array, from, sliceArray, 0, SIZE);
 
         return sliceArray;
     }

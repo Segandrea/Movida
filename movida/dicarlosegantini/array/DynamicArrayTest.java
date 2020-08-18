@@ -283,12 +283,13 @@ class DynamicArrayTest {
     void slice() {
         final var capacity = this.seed(3);
 
-        assertArrayEquals(new Integer[]{0, 1, 2}, this.sut.slice(Integer[]::new, 0, 2));
-        assertArrayEquals(new Integer[]{1, 2}, this.sut.slice(Integer[]::new, 1, 2));
-        assertArrayEquals(new Integer[]{2}, this.sut.slice(Integer[]::new, 2, 2));
-        assertArrayEquals(new Integer[]{1}, this.sut.slice(Integer[]::new, 1, 1));
-        assertArrayEquals(new Integer[]{0}, this.sut.slice(Integer[]::new, 0, 0));
-        assertArrayEquals(new Integer[]{0, 1}, this.sut.slice(Integer[]::new, 0, 1));
+        assertArrayEquals(new Integer[]{0, 1, 2}, this.sut.slice(Integer[]::new, 0, 3));
+        assertArrayEquals(new Integer[]{1, 2}, this.sut.slice(Integer[]::new, 1, 3));
+        assertArrayEquals(new Integer[]{2}, this.sut.slice(Integer[]::new, 2, 3));
+        assertArrayEquals(new Integer[]{1}, this.sut.slice(Integer[]::new, 1, 2));
+        assertArrayEquals(new Integer[0], this.sut.slice(Integer[]::new, 0, 0));
+        assertArrayEquals(new Integer[]{0}, this.sut.slice(Integer[]::new, 0, 1));
+        assertArrayEquals(new Integer[]{0, 1}, this.sut.slice(Integer[]::new, 0, 2));
 
         assertFalse(this.sut.empty());
         assertEquals(3, this.sut.size());
@@ -309,7 +310,7 @@ class DynamicArrayTest {
 
         this.sut.sort(QuickSort.getInstance(), Integer::compareTo);
 
-        for(int i = 0; i < this.sut.size(); ++i) {
+        for (int i = 0; i < this.sut.size(); ++i) {
             assertEquals(i, this.sut.get(i));
         }
     }
