@@ -43,7 +43,7 @@ import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class MovidaCore implements IMovidaConfig, IMovidaDB {
+public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch {
     final private DynamicArray<Person> actorsOrderedByActivity;
     final private DynamicArray<Movie> moviesOrderedByVotes;
     final private DynamicArray<Movie> moviesOrderedByYear;
@@ -329,5 +329,42 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB {
     @Override
     public Person[] getAllPeople() {
         return Stream.concat(this.actors.values(), this.directors.values()).toArray(Person[]::new);
+    }
+
+    @Override
+    public Movie[] searchMoviesByTitle(final String title) {
+        final var lowerCaseTitle = title.toLowerCase();
+        return this.movies.values().parallel().filter(m -> m.getTitle().contains(lowerCaseTitle)).toArray(Movie[]::new);
+    }
+
+    @Override
+    public Movie[] searchMoviesInYear(final Integer year) {
+        return this.moviesByYear.get(year).stream().toArray(Movie[]::new);
+    }
+
+    @Override
+    public Movie[] searchMoviesDirectedBy(final String name) {
+        return this.moviesByDirector.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+    }
+
+    @Override
+    public Movie[] searchMoviesStarredBy(final String name) {
+        return this.moviesByActor.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+    }
+
+    @Override
+    public Movie[] searchMostVotedMovies(final Integer N) {
+        return this.moviesOrderedByVotes.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByVotes.size()));
+    }
+
+    @Override
+    public Movie[] searchMostRecentMovies(final Integer N) {
+        return this.moviesOrderedByYear.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByYear.size()));
+    }
+
+    @Override
+    public Person[] searchMostActiveActors(final Integer N) {
+        return this.actorsOrderedByActivity
+                .slice(Person[]::new, 0, Math.max(N, this.actorsOrderedByActivity.size()));
     }
 }
