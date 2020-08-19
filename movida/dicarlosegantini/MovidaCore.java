@@ -28,343 +28,124 @@
 package movida.dicarlosegantini;
 
 import movida.commons.*;
-import movida.dicarlosegantini.array.DynamicArray;
-import movida.dicarlosegantini.map.ArrayOrdinato;
-import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
-import movida.dicarlosegantini.map.IMap;
-import movida.dicarlosegantini.set.HashSet;
-import movida.dicarlosegantini.sort.ISort;
-import movida.dicarlosegantini.sort.QuickSort;
-import movida.dicarlosegantini.sort.SelectionSort;
 
-import java.io.*;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.stream.Collectors;
+import java.io.File;
 import java.util.stream.Stream;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch {
-    final private DynamicArray<Person> actorsOrderedByActivity;
-    final private DynamicArray<Movie> moviesOrderedByVotes;
-    final private DynamicArray<Movie> moviesOrderedByYear;
-    private MapImplementation mapImplementation;
-    private IMap<String, HashSet<Movie>> moviesByDirector;
-    private IMap<String, HashSet<Movie>> moviesByActor;
-    private IMap<Integer, HashSet<Movie>> moviesByYear;
-    private IMap<String, Person> directors;
-    private IMap<String, Person> actors;
-    private IMap<String, Movie> movies;
-    private ISort sortingAlgorithm;
+    private final IPersistence persistenceDelegate;
+    private final IConfigurableDB dbDelegate;
+    private final IConfigurableSearch searchDelegate;
 
-    private MovidaCore() {
-        this.actorsOrderedByActivity = new DynamicArray<>();
-        this.moviesOrderedByVotes = new DynamicArray<>();
-        this.moviesOrderedByYear = new DynamicArray<>();
-
-        this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
-
-        this.moviesByDirector = new HashIndirizzamentoAperto<>();
-        this.moviesByActor = new HashIndirizzamentoAperto<>();
-        this.moviesByYear = new HashIndirizzamentoAperto<>();
-        this.directors = new HashIndirizzamentoAperto<>();
-        this.actors = new HashIndirizzamentoAperto<>();
-        this.movies = new HashIndirizzamentoAperto<>();
-
-        this.sortingAlgorithm = QuickSort.getInstance();
-    }
-
-    private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
-        writer.append("title: ");
-        writer.append(movie.getTitle());
-        writer.newLine();
-
-        writer.append("year: ");
-        writer.append(movie.getYear().toString());
-        writer.newLine();
-
-        writer.append("director: ");
-        writer.append(movie.getDirector().getName());
-        writer.newLine();
-
-        writer.append("cast: ");
-        writer.append(
-                Arrays.stream(movie.getCast())
-                        .map(Person::getName)
-                        .collect(Collectors.joining(", "))
-        );
-        writer.newLine();
-
-        writer.append("votes: ");
-        writer.append(movie.getVotes().toString());
-        writer.newLine();
-
-        writer.newLine();
-    }
-
-    private void loadMovie(final IMap<String, String> movieData) {
-        final var title = movieData.get("title");
-        final var year = Integer.parseInt(movieData.get("year"));
-        final var votes = Integer.parseInt(movieData.get("votes"));
-        final var director = new Person(movieData.get("director"));
-        final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
-                .map(Person::new)
-                .toArray(Person[]::new);
-
-        final var movie = new Movie(title, year, votes, cast, director);
-
-        this.moviesOrderedByVotes.append(movie);
-        this.moviesOrderedByYear.append(movie);
-
-        this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
-        this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
-
-        for (final var actor : movie.getCast()) {
-            this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
-            this.actors.add(actor.getName(), actor);
-        }
-
-        this.directors.add(movie.getDirector().getName(), movie.getDirector());
-        this.movies.add(movie.getTitle(), movie);
+    public MovidaCore(final IPersistence persistenceDelegate, final IConfigurableDB dbDelegate,
+                      final IConfigurableSearch searchDelegate) {
+        this.persistenceDelegate = persistenceDelegate;
+        this.dbDelegate = dbDelegate;
+        this.searchDelegate = searchDelegate;
     }
 
     @Override
-    public boolean setSort(final SortingAlgorithm sortingAlgorithm) {
-        switch (sortingAlgorithm) {
-            case SelectionSort:
-                this.sortingAlgorithm = SelectionSort.getInstance();
-                break;
-            case QuickSort:
-                this.sortingAlgorithm = QuickSort.getInstance();
-                break;
-            default:
-                return false;
-        }
-
-        return true;
+    public boolean setSort(final SortingAlgorithm a) {
+        final var x = this.searchDelegate.setSort(a);
+        final var y = this.dbDelegate.setSort(a);
+        return x || y;
     }
 
     @Override
-    public boolean setMap(final MapImplementation mapImplementation) {
-        if (mapImplementation != this.mapImplementation) {
-            switch (mapImplementation) {
-                case ArrayOrdinato:
-                    this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
-                    this.moviesByActor = ArrayOrdinato.from(this.moviesByActor);
-                    this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
-                    this.directors = ArrayOrdinato.from(this.directors);
-                    this.actors = ArrayOrdinato.from(this.actors);
-                    this.movies = ArrayOrdinato.from(this.movies);
-                    break;
-                case HashIndirizzamentoAperto:
-                    this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
-                    this.moviesByActor = HashIndirizzamentoAperto.from(this.moviesByActor);
-                    this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
-                    this.directors = HashIndirizzamentoAperto.from(this.directors);
-                    this.actors = HashIndirizzamentoAperto.from(this.actors);
-                    this.movies = HashIndirizzamentoAperto.from(this.movies);
-                    break;
-                default:
-                    return false;
-            }
-            this.mapImplementation = mapImplementation;
-        }
-
-        return true;
+    public boolean setMap(final MapImplementation m) {
+        final var x = this.searchDelegate.setMap(m);
+        final var y = this.dbDelegate.setMap(m);
+        return x || y;
     }
 
     @Override
-    public void loadFromFile(File f) {
-        final var movieData = new HashIndirizzamentoAperto<String, String>();
-        movieData.reserve(5);
-
-        try {
-            final var reader = new BufferedReader(new FileReader(f));
-
-            for (var line = reader.readLine(); null != line; line = reader.readLine()) {
-                line = line.strip().toLowerCase();
-
-                if (line.isEmpty()) {
-                    this.loadMovie(movieData);
-                    movieData.clear();
-                    continue;
-                }
-
-                final var keyValue = line.split("[\\W]*:[\\W]*");
-                if (2 != keyValue.length) {
-                    throw new MovidaFileException(/* parse error: bad key-value supplied */);
-                }
-
-                switch (keyValue[0]) {
-                    case "title":
-                    case "year":
-                    case "director":
-                    case "cast":
-                    case "votes":
-                        movieData.add(keyValue[0], keyValue[1]);
-                        break;
-                    default:
-                        throw new MovidaFileException(/* parse error: unexpected key */);
-                }
-            }
-        } catch (final IOException e) {
-            final var x = new MovidaFileException();
-            x.initCause(x);
-            throw x;
-        }
-
-        if (!movieData.empty()) {
-            this.loadMovie(movieData);
-        }
-
-        this.moviesOrderedByVotes.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getVotes).reversed());
-        this.moviesOrderedByYear.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getYear).reversed());
-
-        this.actorsOrderedByActivity.clear();
-        this.actors.values().forEach(this.actorsOrderedByActivity::append);
-        this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
-            final Integer aActivity = this.moviesByActor.get(a.getName()).size();
-            final Integer bActivity = this.moviesByActor.get(b.getName()).size();
-
-            return -(aActivity.compareTo(bActivity));
+    public void loadFromFile(final File f) {
+        this.persistenceDelegate.load(f, m -> {
+            this.dbDelegate.load(m);
+            this.searchDelegate.load(m);
         });
+        this.searchDelegate.finalizeLoad();
     }
 
     @Override
-    public void saveToFile(File f) {
-        try {
-            final var writer = new BufferedWriter(new FileWriter(f));
-            final var iterator = this.movies.values().iterator();
-
-            while (iterator.hasNext()) {
-                saveMovieToFile(writer, iterator.next());
-            }
-
-            writer.flush();
-        } catch (final IOException e) {
-            final var x = new MovidaFileException();
-            x.initCause(x);
-            throw x;
-        }
+    public void saveToFile(final File f) {
+        this.persistenceDelegate.store(f, this.dbDelegate.streamMovies());
     }
 
     @Override
     public void clear() {
-        this.actorsOrderedByActivity.clear();
-        this.moviesOrderedByVotes.clear();
-        this.moviesOrderedByYear.clear();
-        this.moviesByDirector.clear();
-        this.moviesByActor.clear();
-        this.moviesByYear.clear();
-        this.directors.clear();
-        this.actors.clear();
-        this.movies.clear();
+        this.dbDelegate.clear();
+        this.searchDelegate.clear();
     }
 
     @Override
     public int countMovies() {
-        return this.movies.size();
+        return this.dbDelegate.countMovies();
     }
 
     @Override
     public int countPeople() {
-        return this.directors.size() + this.actors.size();
+        return this.dbDelegate.countActors() + this.dbDelegate.countDirectors();
     }
 
     @Override
     public boolean deleteMovieByTitle(final String title) {
-        final var movie = this.movies.del(title.toLowerCase());
-
-        if (null != movie) {
-            this.moviesOrderedByVotes.binaryRemove(movie, Comparator.comparing(Movie::getVotes).reversed());
-            this.moviesOrderedByYear.binaryRemove(movie, Comparator.comparing(Movie::getYear).reversed());
-
-            this.moviesByDirector.get(movie.getDirector().getName()).del(movie);
-            this.moviesByYear.get(movie.getYear()).del(movie);
-
-            boolean actorsOrderedByActivityNeedsToBeSorted = false;
-            for (final var actor : movie.getCast()) {
-                final var moviesPerActor = this.moviesByActor.get(actor.getName());
-                moviesPerActor.del(movie);
-
-                if (moviesPerActor.empty()) {
-                    this.actorsOrderedByActivity.binaryRemove(actor, Comparator.comparing(Person::getName));
-                } else {
-                    actorsOrderedByActivityNeedsToBeSorted = true;
-                }
-            }
-
-            if (actorsOrderedByActivityNeedsToBeSorted) {
-                this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
-                    final Integer aActivity = this.moviesByActor.get(a.getName()).size();
-                    final Integer bActivity = this.moviesByActor.get(b.getName()).size();
-
-                    return -(aActivity.compareTo(bActivity));
-                });
-            }
-
-            return true;
-        }
-
-        return false;
+        return this.dbDelegate.deleteMovieByTitle(title);
     }
 
     @Override
     public Movie getMovieByTitle(final String title) {
-        return this.movies.get(title.toLowerCase());
+        return this.dbDelegate.getMovieByTitle(title);
     }
 
     @Override
     public Person getPersonByName(final String name) {
-        final var personName = name.toLowerCase();
-        final var actor = this.actors.get(personName);
-
-        return (null != actor) ? actor : this.directors.get(personName);
+        final var actor = this.dbDelegate.getActorByName(name);
+        return (null != actor) ? actor : this.dbDelegate.getDirectorByName(name);
     }
 
     @Override
     public Movie[] getAllMovies() {
-        return this.movies.values().toArray(Movie[]::new);
+        return this.dbDelegate.getAllMovies();
     }
 
     @Override
     public Person[] getAllPeople() {
-        return Stream.concat(this.actors.values(), this.directors.values()).toArray(Person[]::new);
+        return Stream.concat(this.dbDelegate.streamActors(), this.dbDelegate.streamDirectors()).toArray(Person[]::new);
     }
 
     @Override
     public Movie[] searchMoviesByTitle(final String title) {
-        final var lowerCaseTitle = title.toLowerCase();
-        return this.movies.values().parallel().filter(m -> m.getTitle().contains(lowerCaseTitle)).toArray(Movie[]::new);
+        return this.searchDelegate.searchMoviesByTitle(title);
     }
 
     @Override
     public Movie[] searchMoviesInYear(final Integer year) {
-        return this.moviesByYear.get(year).stream().toArray(Movie[]::new);
+        return this.searchDelegate.searchMoviesInYear(year);
     }
 
     @Override
     public Movie[] searchMoviesDirectedBy(final String name) {
-        return this.moviesByDirector.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+        return this.searchDelegate.searchMoviesDirectedBy(name);
     }
 
     @Override
     public Movie[] searchMoviesStarredBy(final String name) {
-        return this.moviesByActor.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+        return this.searchDelegate.searchMoviesStarredBy(name);
     }
 
     @Override
     public Movie[] searchMostVotedMovies(final Integer N) {
-        return this.moviesOrderedByVotes.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByVotes.size()));
+        return this.searchDelegate.searchMostVotedMovies(N);
     }
 
     @Override
     public Movie[] searchMostRecentMovies(final Integer N) {
-        return this.moviesOrderedByYear.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByYear.size()));
+        return this.searchDelegate.searchMostRecentMovies(N);
     }
 
     @Override
     public Person[] searchMostActiveActors(final Integer N) {
-        return this.actorsOrderedByActivity
-                .slice(Person[]::new, 0, Math.max(N, this.actorsOrderedByActivity.size()));
+        return this.searchDelegate.searchMostActiveActors(N);
     }
 }
