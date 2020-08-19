@@ -33,6 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BinarySearchTest {
     @Test
+    void searchStringArray() {
+        // String::compareTo may return values outside -1, 0, 1.
+        final var array = new String[]{"nick nolte", "robert de niro"};
+        assertEquals(0, BinarySearch.search(array, "nick nolte", String::compareTo));
+        assertEquals(1, BinarySearch.search(array, "robert de niro", String::compareTo));
+    }
+
+    @Test
     void searchEmptyArray() {
         final var array = new Integer[0];
         for (int i = -1; 2 > i; ++i) {

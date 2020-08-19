@@ -81,13 +81,15 @@ public final class BinarySearch {
         }
 
         final var middle = (from + to) / 2;
-        switch (comparator.compare(array[middle], item)) {
-            case 1:
-                return search(array, from, middle, item, comparator);
-            case -1:
-                return search(array, middle + 1, to + 1, item, comparator);
-            default:
-                return middle;
+        final var result = comparator.compare(array[middle], item);
+
+        // String::compareTo may return values outside -1, 0, 1.
+        if (0 > result) {
+            return search(array, middle + 1, to + 1, item, comparator);
+        } else if (0 < result) {
+            return search(array, from, middle, item, comparator);
+        } else {
+            return middle;
         }
     }
 }
