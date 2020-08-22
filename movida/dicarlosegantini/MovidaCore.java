@@ -32,115 +32,84 @@ import movida.dicarlosegantini.array.DynamicArray;
 import movida.dicarlosegantini.map.ArrayOrdinato;
 import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.map.IMap;
-import movida.dicarlosegantini.set.HashSet;
 import movida.dicarlosegantini.sort.ISort;
 import movida.dicarlosegantini.sort.QuickSort;
 import movida.dicarlosegantini.sort.SelectionSort;
 
-import java.io.*;
-import java.util.Arrays;
+import java.io.File;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch {
-    final private DynamicArray<Person> actorsOrderedByActivity;
+    final private IPersistence persistence;
+
     final private DynamicArray<Movie> moviesOrderedByVotes;
     final private DynamicArray<Movie> moviesOrderedByYear;
-    private MapImplementation mapImplementation;
-    private IMap<String, HashSet<Movie>> moviesByDirector;
-    private IMap<String, HashSet<Movie>> moviesByActor;
-    private IMap<Integer, HashSet<Movie>> moviesByYear;
+    final private DynamicArray<Person> actorsOrderedByActivity;
+
+    private IMap<String, DynamicArray<Movie>> moviesByDirector;
+    private IMap<String, DynamicArray<Movie>> moviesByActor;
+    private IMap<Integer, DynamicArray<Movie>> moviesByYear;
+
     private IMap<String, Person> directors;
     private IMap<String, Person> actors;
     private IMap<String, Movie> movies;
+
+    private MapImplementation mapImplementation;
     private ISort sortingAlgorithm;
 
-    private MovidaCore() {
-        this.actorsOrderedByActivity = new DynamicArray<>();
+    public MovidaCore(final IPersistence persistence) {
+        this.persistence = persistence;
+
         this.moviesOrderedByVotes = new DynamicArray<>();
         this.moviesOrderedByYear = new DynamicArray<>();
-
-        this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
+        this.actorsOrderedByActivity = new DynamicArray<>();
 
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
         this.moviesByActor = new HashIndirizzamentoAperto<>();
         this.moviesByYear = new HashIndirizzamentoAperto<>();
+
         this.directors = new HashIndirizzamentoAperto<>();
         this.actors = new HashIndirizzamentoAperto<>();
         this.movies = new HashIndirizzamentoAperto<>();
 
+        this.mapImplementation = MapImplementation.HashIndirizzamentoAperto;
         this.sortingAlgorithm = QuickSort.getInstance();
     }
 
-    private static void saveMovieToFile(BufferedWriter writer, final Movie movie) throws IOException {
-        writer.append("title: ");
-        writer.append(movie.getTitle());
-        writer.newLine();
+    static private ISort instanceSortingAlgorithm(final SortingAlgorithm sortingAlgorithm) {
+        switch (sortingAlgorithm) {
+            case SelectionSort:
+                return SelectionSort.getInstance();
 
-        writer.append("year: ");
-        writer.append(movie.getYear().toString());
-        writer.newLine();
+            case QuickSort:
+                return QuickSort.getInstance();
 
-        writer.append("director: ");
-        writer.append(movie.getDirector().getName());
-        writer.newLine();
-
-        writer.append("cast: ");
-        writer.append(
-                Arrays.stream(movie.getCast())
-                        .map(Person::getName)
-                        .collect(Collectors.joining(", "))
-        );
-        writer.newLine();
-
-        writer.append("votes: ");
-        writer.append(movie.getVotes().toString());
-        writer.newLine();
-
-        writer.newLine();
-    }
-
-    private void loadMovie(final IMap<String, String> movieData) {
-        final var title = movieData.get("title");
-        final var year = Integer.parseInt(movieData.get("year"));
-        final var votes = Integer.parseInt(movieData.get("votes"));
-        final var director = new Person(movieData.get("director"));
-        final var cast = (Person[]) Arrays.stream(movieData.get("cast").split("[\\W]*,[\\W]*"))
-                .map(Person::new)
-                .toArray(Person[]::new);
-
-        final var movie = new Movie(title, year, votes, cast, director);
-
-        this.moviesOrderedByVotes.append(movie);
-        this.moviesOrderedByYear.append(movie);
-
-        this.moviesByDirector.getOrAdd(director.getName(), HashSet::new).add(movie);
-        this.moviesByYear.getOrAdd(year, HashSet::new).add(movie);
-
-        for (final var actor : movie.getCast()) {
-            this.moviesByActor.getOrAdd(actor.getName(), HashSet::new).add(movie);
-            this.actors.add(actor.getName(), actor);
+            default:
+                return null;
         }
-
-        this.directors.add(movie.getDirector().getName(), movie.getDirector());
-        this.movies.add(movie.getTitle(), movie);
     }
 
     @Override
     public boolean setSort(final SortingAlgorithm sortingAlgorithm) {
-        switch (sortingAlgorithm) {
-            case SelectionSort:
-                this.sortingAlgorithm = SelectionSort.getInstance();
-                break;
-            case QuickSort:
-                this.sortingAlgorithm = QuickSort.getInstance();
-                break;
-            default:
-                return false;
+        if (instanceSortingAlgorithm(sortingAlgorithm) != this.sortingAlgorithm) {
+            switch (sortingAlgorithm) {
+                case SelectionSort:
+                    this.sortingAlgorithm = SelectionSort.getInstance();
+                    break;
+
+                case QuickSort:
+                    this.sortingAlgorithm = QuickSort.getInstance();
+                    break;
+
+                default:
+                    return false;
+            }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override
@@ -151,100 +120,108 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
                     this.moviesByDirector = ArrayOrdinato.from(this.moviesByDirector);
                     this.moviesByActor = ArrayOrdinato.from(this.moviesByActor);
                     this.moviesByYear = ArrayOrdinato.from(this.moviesByYear);
+
                     this.directors = ArrayOrdinato.from(this.directors);
                     this.actors = ArrayOrdinato.from(this.actors);
                     this.movies = ArrayOrdinato.from(this.movies);
                     break;
+
                 case HashIndirizzamentoAperto:
                     this.moviesByDirector = HashIndirizzamentoAperto.from(this.moviesByDirector);
                     this.moviesByActor = HashIndirizzamentoAperto.from(this.moviesByActor);
                     this.moviesByYear = HashIndirizzamentoAperto.from(this.moviesByYear);
+
                     this.directors = HashIndirizzamentoAperto.from(this.directors);
                     this.actors = HashIndirizzamentoAperto.from(this.actors);
                     this.movies = HashIndirizzamentoAperto.from(this.movies);
                     break;
+
                 default:
                     return false;
             }
+
             this.mapImplementation = mapImplementation;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    @Override
-    public void loadFromFile(File f) {
-        final var movieData = new HashIndirizzamentoAperto<String, String>();
-        movieData.reserve(5);
+    protected void load(final Movie movie) {
+        final var directorName = movie.getDirector().getName().toLowerCase();
 
-        try {
-            final var reader = new BufferedReader(new FileReader(f));
+        this.moviesByDirector.getOrAdd(directorName, DynamicArray::new).append(movie);
+        this.moviesByYear.getOrAdd(movie.getYear(), DynamicArray::new).append(movie);
 
-            for (var line = reader.readLine(); null != line; line = reader.readLine()) {
-                line = line.strip().toLowerCase();
-
-                if (line.isEmpty()) {
-                    this.loadMovie(movieData);
-                    movieData.clear();
-                    continue;
-                }
-
-                final var keyValue = line.split("[\\W]*:[\\W]*");
-                if (2 != keyValue.length) {
-                    throw new MovidaFileException(/* parse error: bad key-value supplied */);
-                }
-
-                switch (keyValue[0]) {
-                    case "title":
-                    case "year":
-                    case "director":
-                    case "cast":
-                    case "votes":
-                        movieData.add(keyValue[0], keyValue[1]);
-                        break;
-                    default:
-                        throw new MovidaFileException(/* parse error: unexpected key */);
-                }
-            }
-        } catch (final IOException e) {
-            final var x = new MovidaFileException();
-            x.initCause(x);
-            throw x;
+        for (final var actor : movie.getCast()) {
+            final var actorName = actor.getName().toLowerCase();
+            this.moviesByActor.getOrAdd(actorName, DynamicArray::new).append(movie);
+            this.actors.add(actorName, actor);
         }
 
-        if (!movieData.empty()) {
-            this.loadMovie(movieData);
-        }
+        this.moviesOrderedByVotes.append(movie);
+        this.moviesOrderedByYear.append(movie);
 
-        this.moviesOrderedByVotes.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getVotes).reversed());
-        this.moviesOrderedByYear.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getYear).reversed());
+        this.directors.add(directorName, movie.getDirector());
+        this.movies.add(movie.getTitle().toLowerCase(), movie);
+    }
+
+    protected void finalizeLoad() {
+        this.moviesOrderedByVotes.sort(this.sortingAlgorithm, (x, y) -> {
+            final var votesCmp = -(x.getVotes().compareTo(y.getVotes()));
+            return (0 == votesCmp) ? x.getTitle().compareToIgnoreCase(y.getTitle()) : votesCmp;
+        });
+
+        this.moviesOrderedByYear.sort(this.sortingAlgorithm, (x, y) -> {
+            final var yearCmp = -(x.getYear().compareTo(y.getYear()));
+            return (0 == yearCmp) ? x.getTitle().compareToIgnoreCase(y.getTitle()) : yearCmp;
+        });
+
+        this.moviesByDirector
+                .values()
+                .forEach(m -> m.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getTitle)));
+
+        this.moviesByActor
+                .values()
+                .forEach(m -> m.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getTitle)));
+
+        this.moviesByYear
+                .values()
+                .forEach(m -> m.sort(this.sortingAlgorithm, Comparator.comparing(Movie::getTitle)));
 
         this.actorsOrderedByActivity.clear();
-        this.actors.values().forEach(this.actorsOrderedByActivity::append);
+        this.streamActors().forEach(this.actorsOrderedByActivity::append);
         this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
-            final Integer aActivity = this.moviesByActor.get(a.getName()).size();
-            final Integer bActivity = this.moviesByActor.get(b.getName()).size();
+            final var aName = a.getName().toLowerCase();
+            final var bName = b.getName().toLowerCase();
+            final Integer aActivity = this.moviesByActor.get(aName).size();
+            final Integer bActivity = this.moviesByActor.get(bName).size();
+            final var cmp = -(aActivity.compareTo(bActivity));
 
-            return -(aActivity.compareTo(bActivity));
+            return (0 == cmp) ? aName.compareTo(bName) : cmp;
         });
     }
 
     @Override
-    public void saveToFile(File f) {
-        try {
-            final var writer = new BufferedWriter(new FileWriter(f));
-            final var iterator = this.movies.values().iterator();
+    public void loadFromFile(final File f) {
+        this.persistence.load(f, this::load);
+        this.finalizeLoad();
+    }
 
-            while (iterator.hasNext()) {
-                saveMovieToFile(writer, iterator.next());
-            }
+    public Stream<Person> streamActors() {
+        return this.actors.values();
+    }
 
-            writer.flush();
-        } catch (final IOException e) {
-            final var x = new MovidaFileException();
-            x.initCause(x);
-            throw x;
-        }
+    public Stream<Person> streamDirectors() {
+        return this.directors.values();
+    }
+
+    public Stream<Movie> streamMovies() {
+        return this.movies.values();
+    }
+
+    public void saveToFile(final File f) {
+        this.persistence.store(f, this.streamMovies());
     }
 
     @Override
@@ -252,9 +229,11 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         this.actorsOrderedByActivity.clear();
         this.moviesOrderedByVotes.clear();
         this.moviesOrderedByYear.clear();
+
         this.moviesByDirector.clear();
         this.moviesByActor.clear();
         this.moviesByYear.clear();
+
         this.directors.clear();
         this.actors.clear();
         this.movies.clear();
@@ -265,42 +244,70 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         return this.movies.size();
     }
 
+    public int countActors() {
+        return this.actors.size();
+    }
+
+    public int countDirectors() {
+        return this.directors.size();
+    }
+
     @Override
     public int countPeople() {
-        return this.directors.size() + this.actors.size();
+        return this.countActors() + this.countDirectors();
     }
 
     @Override
     public boolean deleteMovieByTitle(final String title) {
-        final var movie = this.movies.del(title.toLowerCase());
+        final var lowerTitle = title.toLowerCase();
+        final var movie = this.movies.del(lowerTitle);
 
         if (null != movie) {
-            this.moviesOrderedByVotes.binaryRemove(movie, Comparator.comparing(Movie::getVotes).reversed());
-            this.moviesOrderedByYear.binaryRemove(movie, Comparator.comparing(Movie::getYear).reversed());
+            final var directorName = movie.getDirector().getName().toLowerCase();
+            final var moviesByDirector = this.moviesByDirector.get(directorName);
+            moviesByDirector.binaryRemove(movie, Comparator.comparing(Movie::getTitle));
+            if (moviesByDirector.empty()) {
+                this.moviesByDirector.del(directorName);
+                this.directors.del(directorName);
+            }
 
-            this.moviesByDirector.get(movie.getDirector().getName()).del(movie);
-            this.moviesByYear.get(movie.getYear()).del(movie);
+            final var year = movie.getYear();
+            final var moviesByYear = this.moviesByYear.get(year);
+            moviesByYear.binaryRemove(movie, Comparator.comparing(Movie::getTitle));
+            if (moviesByYear.empty()) {
+                this.moviesByYear.del(year);
+            }
+            this.moviesOrderedByYear.binaryRemove(movie, (x, y) -> {
+                final var yearCmp = -(x.getYear().compareTo(y.getYear()));
+                return (0 == yearCmp) ? x.getTitle().compareToIgnoreCase(y.getTitle()) : yearCmp;
+            });
 
-            boolean actorsOrderedByActivityNeedsToBeSorted = false;
+            this.moviesOrderedByVotes.binaryRemove(movie, (x, y) -> {
+                final var votesCmp = -(x.getVotes().compareTo(y.getVotes()));
+                return (0 == votesCmp) ? x.getVotes().compareTo(y.getVotes()) : votesCmp;
+            });
+
             for (final var actor : movie.getCast()) {
-                final var moviesPerActor = this.moviesByActor.get(actor.getName());
-                moviesPerActor.del(movie);
-
-                if (moviesPerActor.empty()) {
-                    this.actorsOrderedByActivity.binaryRemove(actor, Comparator.comparing(Person::getName));
-                } else {
-                    actorsOrderedByActivityNeedsToBeSorted = true;
+                final var actorName = actor.getName().toLowerCase();
+                final var moviesByActor = this.moviesByActor.get(actorName);
+                moviesByActor.binaryRemove(movie, Comparator.comparing(Movie::getTitle));
+                if (moviesByActor.empty()) {
+                    this.actors.del(actorName);
+                    this.moviesByActor.del(actorName);
                 }
             }
 
-            if (actorsOrderedByActivityNeedsToBeSorted) {
-                this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
-                    final Integer aActivity = this.moviesByActor.get(a.getName()).size();
-                    final Integer bActivity = this.moviesByActor.get(b.getName()).size();
+            this.actorsOrderedByActivity.clear();
+            this.streamActors().forEach(this.actorsOrderedByActivity::append);
+            this.actorsOrderedByActivity.sort(this.sortingAlgorithm, (a, b) -> {
+                final var aName = a.getName().toLowerCase();
+                final var bName = b.getName().toLowerCase();
+                final Integer aActivity = this.moviesByActor.get(aName).size();
+                final Integer bActivity = this.moviesByActor.get(bName).size();
+                final var cmp = -(aActivity.compareTo(bActivity));
 
-                    return -(aActivity.compareTo(bActivity));
-                });
-            }
+                return (0 == cmp) ? aName.compareTo(bName) : cmp;
+            });
 
             return true;
         }
@@ -313,12 +320,18 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         return this.movies.get(title.toLowerCase());
     }
 
+    public Person getActorByName(final String name) {
+        return this.actors.get(name.toLowerCase());
+    }
+
+    public Person getDirectorByName(final String name) {
+        return this.directors.get(name.toLowerCase());
+    }
+
     @Override
     public Person getPersonByName(final String name) {
-        final var personName = name.toLowerCase();
-        final var actor = this.actors.get(personName);
-
-        return (null != actor) ? actor : this.directors.get(personName);
+        final var actor = this.getActorByName(name);
+        return (null != actor) ? actor : this.getDirectorByName(name);
     }
 
     @Override
@@ -328,43 +341,47 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
 
     @Override
     public Person[] getAllPeople() {
-        return Stream.concat(this.actors.values(), this.directors.values()).toArray(Person[]::new);
+        return Stream.concat(this.streamActors(), this.streamDirectors()).toArray(Person[]::new);
     }
 
     @Override
     public Movie[] searchMoviesByTitle(final String title) {
         final var lowerCaseTitle = title.toLowerCase();
-        return this.movies.values().parallel().filter(m -> m.getTitle().contains(lowerCaseTitle)).toArray(Movie[]::new);
+        return this.moviesOrderedByYear
+                .stream()
+                .parallel()
+                .filter(m -> m.getTitle().toLowerCase().contains(lowerCaseTitle))
+                .toArray(Movie[]::new);
     }
 
     @Override
     public Movie[] searchMoviesInYear(final Integer year) {
-        return this.moviesByYear.get(year).stream().toArray(Movie[]::new);
+        return this.moviesByYear.getOrDefault(year, DynamicArray::new).stream().toArray(Movie[]::new);
     }
 
     @Override
     public Movie[] searchMoviesDirectedBy(final String name) {
-        return this.moviesByDirector.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+        return this.moviesByDirector.getOrDefault(name.toLowerCase(), DynamicArray::new).stream().toArray(Movie[]::new);
     }
 
     @Override
     public Movie[] searchMoviesStarredBy(final String name) {
-        return this.moviesByActor.get(name.toLowerCase()).stream().toArray(Movie[]::new);
+        return this.moviesByActor.getOrDefault(name.toLowerCase(), DynamicArray::new).stream().toArray(Movie[]::new);
     }
 
     @Override
     public Movie[] searchMostVotedMovies(final Integer N) {
-        return this.moviesOrderedByVotes.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByVotes.size()));
+        return this.moviesOrderedByVotes.slice(Movie[]::new, 0, Math.min(N, this.moviesOrderedByVotes.size()));
     }
 
     @Override
     public Movie[] searchMostRecentMovies(final Integer N) {
-        return this.moviesOrderedByYear.slice(Movie[]::new, 0, Math.max(N, this.moviesOrderedByYear.size()));
+        return this.moviesOrderedByYear.slice(Movie[]::new, 0, Math.min(N, this.moviesOrderedByYear.size()));
     }
 
     @Override
     public Person[] searchMostActiveActors(final Integer N) {
         return this.actorsOrderedByActivity
-                .slice(Person[]::new, 0, Math.max(N, this.actorsOrderedByActivity.size()));
+                .slice(Person[]::new, 0, Math.min(N, this.actorsOrderedByActivity.size()));
     }
 }

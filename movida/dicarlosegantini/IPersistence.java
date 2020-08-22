@@ -25,42 +25,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package movida.dicarlosegantini.map;
+package movida.dicarlosegantini;
 
-import java.util.function.Supplier;
+import movida.commons.MovidaFileException;
+import movida.commons.Movie;
+
+import java.io.File;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public interface IMap<K, V> {
-    V add(final K key, final V value);
+public interface IPersistence {
+    void load(final File f, final Consumer<Movie> consumer) throws MovidaFileException;
 
-    V getOrAdd(final K key, final Supplier<V> supplier);
-
-    default V getOrDefault(final K key, final Supplier<V> supplier) {
-        final var value = this.get(key);
-        return (null != value) ? value : supplier.get();
-    }
-
-    V get(final K key);
-
-    V del(final K key);
-
-    boolean has(final K key);
-
-    Stream<K> keys();
-
-    Stream<V> values();
-
-    Stream<Entry<K, V>> stream();
-
-    void reserve(final int additionalItems);
-
-    int capacity();
-
-    int size();
-
-    void clear();
-
-    default boolean empty() {
-        return 0 == this.size();
-    }
+    void store(final File f, final Stream<Movie> movies) throws MovidaFileException;
 }
