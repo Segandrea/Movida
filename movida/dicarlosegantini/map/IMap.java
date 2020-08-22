@@ -35,6 +35,11 @@ public interface IMap<K, V> {
 
     V getOrAdd(final K key, final Supplier<V> supplier);
 
+    default V getOrDefault(final K key, final Supplier<V> supplier) {
+        final var value = this.get(key);
+        return (null != value) ? value : supplier.get();
+    }
+
     V get(final K key);
 
     V del(final K key);
