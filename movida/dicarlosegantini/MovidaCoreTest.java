@@ -33,6 +33,7 @@ import movida.commons.Person;
 import movida.commons.SortingAlgorithm;
 import movida.dicarlosegantini.sort.ISort;
 import movida.dicarlosegantini.sort.QuickSort;
+import movida.dicarlosegantini.sort.SelectionSort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,16 +43,18 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MovidaDBTest {
+class MovidaCoreTest {
     static final ISort sortingAlgorithm = QuickSort.getInstance();
     final Person[] DIRECTORS = makePeople(new String[]{
             "Martin Scorsese", "Quentin Tarantino"
     });
+
     final Person[] ACTORS = makePeople(new String[]{
             "Robert De Niro", "Nick Nolte", "Jessica Lange", "Juliette Lewis",
             "Jodie Foster", "Cybill Shepherd", "Albert Brooks",
             "John Travolta", "Uma Thurman"
     });
+
     final Movie[] MOVIES = new Movie[]{
             new Movie("Cape Fear", 1991, 163093, makePeople(new String[]{
                     "Robert De Niro", "Nick Nolte", "Jessica Lange", "Juliette Lewis"
@@ -63,9 +66,33 @@ class MovidaDBTest {
                     "John Travolta", "Uma Thurman"
             }), new Person("Quentin Tarantino")),
     };
-    MovidaDB sut;
 
-    MovidaDBTest() {
+    final Movie[] MOVIES_BY_YEAR = new Movie[]{
+            this.MOVIES[2],
+            this.MOVIES[0],
+            this.MOVIES[1]
+    };
+
+    final Movie[] MOVIES_BY_VOTES = new Movie[]{
+            this.MOVIES[2],
+            this.MOVIES[1],
+            this.MOVIES[0]
+    };
+
+    final Person[] ACTORS_BY_ACTIVITY = makePeople(new String[]{
+            "Robert De Niro",
+            "Albert Brooks",
+            "Cybill Shepherd",
+            "Jessica Lange",
+            "Jodie Foster",
+            "John Travolta",
+            "Juliette Lewis",
+            "Nick Nolte",
+            "Uma Thurman"
+    });
+    MovidaCore sut;
+
+    MovidaCoreTest() {
         sortingAlgorithm.sort(this.DIRECTORS, Comparator.comparing(Person::getName));
         sortingAlgorithm.sort(this.ACTORS, Comparator.comparing(Person::getName));
         sortingAlgorithm.sort(this.MOVIES, Comparator.comparing(Movie::getTitle));
@@ -77,10 +104,12 @@ class MovidaDBTest {
 
     @BeforeEach
     void setUp() {
-        this.sut = new MovidaDB();
+        this.sut = new MovidaCore(new MovidaPersistence());
         this.sut.setMap(MapImplementation.ArrayOrdinato);
         Arrays.stream(this.MOVIES).forEach(m -> this.sut.load(m));
+        this.sut.finalizeLoad();
     }
+
 
     @Test
     void clear() {
@@ -96,6 +125,19 @@ class MovidaDBTest {
         assertEquals(0, this.sut.streamActors().count());
         assertEquals(0, this.sut.streamDirectors().count());
         assertEquals(0, this.sut.streamMovies().count());
+        assertEquals(0, this.sut.searchMoviesByTitle("").length);
+        assertEquals(0, this.sut.searchMostActiveActors(this.ACTORS_BY_ACTIVITY.length).length);
+        assertEquals(0, this.sut.searchMostRecentMovies(this.MOVIES_BY_YEAR.length).length);
+        assertEquals(0, this.sut.searchMostVotedMovies(this.MOVIES_BY_VOTES.length).length);
+        for (final var movie : this.MOVIES_BY_YEAR) {
+            assertEquals(0, this.sut.searchMoviesInYear(movie.getYear()).length);
+        }
+        for (final var movie : this.MOVIES_BY_YEAR) {
+            assertEquals(0, this.sut.searchMoviesDirectedBy(movie.getDirector().getName()).length);
+        }
+        for (final var actor : this.ACTORS_BY_ACTIVITY) {
+            assertEquals(0, this.sut.searchMoviesStarredBy(actor.getName()).length);
+        }
     }
 
     @Test
@@ -156,9 +198,8 @@ class MovidaDBTest {
         final var allActors = this.sut.streamActors().toArray(Person[]::new);
         sortingAlgorithm.sort(allActors, Comparator.comparing(Person::getName));
         assertEquals(this.ACTORS.length, allActors.length);
-        IntStream.range(0, this.ACTORS.length).forEach(i -> {
-            assertEquals(this.ACTORS[i].getName(), allActors[i].getName());
-        });
+        IntStream.range(0, this.ACTORS.length)
+                .forEach(i -> assertEquals(this.ACTORS[i].getName(), allActors[i].getName()));
     }
 
     @Test
@@ -166,9 +207,8 @@ class MovidaDBTest {
         final var allDirectors = this.sut.streamDirectors().toArray(Person[]::new);
         sortingAlgorithm.sort(allDirectors, Comparator.comparing(Person::getName));
         assertEquals(this.DIRECTORS.length, allDirectors.length);
-        IntStream.range(0, this.DIRECTORS.length).forEach(i -> {
-            assertEquals(this.DIRECTORS[i].getName(), allDirectors[i].getName());
-        });
+        IntStream.range(0, this.DIRECTORS.length)
+                .forEach(i -> assertEquals(this.DIRECTORS[i].getName(), allDirectors[i].getName()));
     }
 
     @Test
@@ -196,8 +236,17 @@ class MovidaDBTest {
 
     @Test
     void setSort() {
+        this.sut.setSort(SortingAlgorithm.SelectionSort);
+
         assertFalse(this.sut.setSort(SortingAlgorithm.SelectionSort));
+        assertTrue(this.sut.setSort(SortingAlgorithm.QuickSort));
         assertFalse(this.sut.setSort(SortingAlgorithm.QuickSort));
+        assertTrue(this.sut.setSort(SortingAlgorithm.SelectionSort));
+
+        assertFalse(this.sut.setSort(SortingAlgorithm.BubbleSort));
+        assertFalse(this.sut.setSort(SortingAlgorithm.HeapSort));
+        assertFalse(this.sut.setSort(SortingAlgorithm.MergeSort));
+        assertFalse(this.sut.setSort(SortingAlgorithm.InsertionSort));
     }
 
     @Test
@@ -208,5 +257,139 @@ class MovidaDBTest {
         assertTrue(this.sut.setMap(MapImplementation.ArrayOrdinato));
         assertFalse(this.sut.setMap(MapImplementation.ArrayOrdinato));
         assertTrue(this.sut.setMap(MapImplementation.HashIndirizzamentoAperto));
+
+        assertFalse(this.sut.setMap(MapImplementation.ABR));
+        assertFalse(this.sut.setMap(MapImplementation.Alberi23));
+        assertFalse(this.sut.setMap(MapImplementation.AVL));
+        assertFalse(this.sut.setMap(MapImplementation.BTree));
+        assertFalse(this.sut.setMap(MapImplementation.HashConcatenamento));
+        assertFalse(this.sut.setMap(MapImplementation.ListaNonOrdinata));
+    }
+
+    @Test
+    void searchMoviesByTitle() {
+        {
+            final var result = this.sut.searchMoviesByTitle(" f");
+            assertEquals(2, result.length);
+            SelectionSort.getInstance().sort(result, Comparator.comparing(Movie::getTitle));
+            assertEquals("Cape Fear", result[0].getTitle());
+            assertEquals("Pulp Fiction", result[1].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesByTitle("dRI");
+            assertEquals(1, result.length);
+            assertEquals("Taxi Driver", result[0].getTitle());
+        }
+
+        assertEquals(0, this.sut.searchMoviesByTitle("uN tiTOlO Che NoN EsiSte").length);
+    }
+
+    @Test
+    void searchMoviesInYear() {
+        for (final var movie : this.MOVIES_BY_YEAR) {
+            final var result = this.sut.searchMoviesInYear(movie.getYear());
+            assertEquals(1, result.length);
+            assertEquals(movie.getTitle(), result[0].getTitle());
+        }
+
+        assertEquals(0, this.sut.searchMoviesInYear(-1).length);
+    }
+
+    @Test
+    void searchMoviesDirectedBy() {
+        {
+            final var result = this.sut.searchMoviesDirectedBy("QUeNtIn taraNtino");
+            assertEquals(1, result.length);
+            assertEquals("Pulp Fiction", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesDirectedBy("MarTIN ScoRSesE");
+            assertEquals(2, result.length);
+            SelectionSort.getInstance().sort(result, Comparator.comparing(Movie::getTitle));
+            assertEquals("Cape Fear", result[0].getTitle());
+            assertEquals("Taxi Driver", result[1].getTitle());
+        }
+
+        assertEquals(0, this.sut.searchMoviesDirectedBy("DireTTorE cHe NoN eSiSTe").length);
+    }
+
+    @Test
+    void searchMoviesStarredBy() {
+        {
+            final var result = this.sut.searchMoviesStarredBy("jOhN TRAvolTa");
+            assertEquals(1, result.length);
+            assertEquals("Pulp Fiction", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("UmA THUrmAn");
+            assertEquals(1, result.length);
+            assertEquals("Pulp Fiction", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Nick Nolte");
+            assertEquals(1, result.length);
+            assertEquals("Cape Fear", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Jessica Lange");
+            assertEquals(1, result.length);
+            assertEquals("Cape Fear", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Juliette Lewis");
+            assertEquals(1, result.length);
+            assertEquals("Cape Fear", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("RoBERt de NIRo");
+            assertEquals(2, result.length);
+            SelectionSort.getInstance().sort(result, Comparator.comparing(Movie::getTitle));
+            assertEquals("Cape Fear", result[0].getTitle());
+            assertEquals("Taxi Driver", result[1].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Jodie Foster");
+            assertEquals(1, result.length);
+            assertEquals("Taxi Driver", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Albert Brooks");
+            assertEquals(1, result.length);
+            assertEquals("Taxi Driver", result[0].getTitle());
+        }
+        {
+            final var result = this.sut.searchMoviesStarredBy("Cybill Shepherd");
+            assertEquals(1, result.length);
+            assertEquals("Taxi Driver", result[0].getTitle());
+        }
+
+        assertEquals(0, this.sut.searchMoviesStarredBy("AttORe cHe NoN eSiSTe").length);
+    }
+
+    @Test
+    void searchMostVotedMovies() {
+        final var result = this.sut.searchMostVotedMovies(this.MOVIES_BY_VOTES.length);
+        assertEquals(this.MOVIES_BY_VOTES.length, result.length);
+        for (int i = 0; this.MOVIES_BY_VOTES.length > i; ++i) {
+            assertEquals(this.MOVIES_BY_VOTES[i].getTitle(), result[i].getTitle());
+        }
+    }
+
+    @Test
+    void searchMostRecentMovies() {
+        final var result = this.sut.searchMostRecentMovies(this.MOVIES_BY_YEAR.length);
+        assertEquals(this.MOVIES_BY_YEAR.length, result.length);
+        for (int i = 0; this.MOVIES_BY_YEAR.length > i; ++i) {
+            assertEquals(this.MOVIES_BY_YEAR[i].getTitle(), result[i].getTitle());
+        }
+    }
+
+    @Test
+    void searchMostActiveActors() {
+        final var result = this.sut.searchMostActiveActors(this.ACTORS_BY_ACTIVITY.length);
+        assertEquals(this.ACTORS_BY_ACTIVITY.length, result.length);
+        for (int i = 0; this.ACTORS_BY_ACTIVITY.length > i; ++i) {
+            assertEquals(this.ACTORS_BY_ACTIVITY[i].getName(), result[i].getName());
+        }
     }
 }
