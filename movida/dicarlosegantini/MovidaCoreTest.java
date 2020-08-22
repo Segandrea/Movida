@@ -245,6 +245,54 @@ class MovidaCoreTest {
             assertEquals("Robert De Niro", actors[4].getName());
             assertEquals("Uma Thurman", actors[5].getName());
         }
+
+        this.sut.deleteMovieByTitle("TaXI driVer");
+        assertEquals(this.MOVIES.length - 2, this.sut.countMovies());
+        assertEquals(1, this.sut.countDirectors());
+
+        {
+            final var movies = this.sut.searchMoviesInYear(1976);
+            assertEquals(0, movies.length);
+        }
+        {
+            final var movies = this.sut.searchMoviesInYear(1994);
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMoviesDirectedBy("MarTIn ScorsEsE");
+            assertEquals(0, movies.length);
+        }
+        {
+            final var movies = this.sut.searchMoviesDirectedBy("QuenTIN tarantino");
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMoviesStarredBy("Robert De Niro");
+            assertEquals(0, movies.length);
+        }
+        {
+            final var movies = this.sut.searchMoviesStarredBy("JohN TRavolTa");
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMostRecentMovies(this.MOVIES.length);
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMostVotedMovies(this.MOVIES.length);
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var actors = this.sut.searchMostActiveActors(this.ACTORS.length);
+            assertEquals(2, actors.length);
+            assertEquals("John Travolta", actors[0].getName());
+            assertEquals("Uma Thurman", actors[1].getName());
+        }
     }
 
     @Test
