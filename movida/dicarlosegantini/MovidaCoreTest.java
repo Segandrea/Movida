@@ -45,15 +45,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MovidaCoreTest {
     static final ISort sortingAlgorithm = QuickSort.getInstance();
-    final Person[] DIRECTORS = makePeople(new String[]{
-            "Martin Scorsese", "Quentin Tarantino"
-    });
-
-    final Person[] ACTORS = makePeople(new String[]{
-            "Robert De Niro", "Nick Nolte", "Jessica Lange", "Juliette Lewis",
-            "Jodie Foster", "Cybill Shepherd", "Albert Brooks",
-            "John Travolta", "Uma Thurman"
-    });
 
     final Movie[] MOVIES = new Movie[]{
             new Movie("Cape Fear", 1991, 163093, makePeople(new String[]{
@@ -79,6 +70,16 @@ class MovidaCoreTest {
             this.MOVIES[0]
     };
 
+    final Person[] DIRECTORS = makePeople(new String[]{
+            "Martin Scorsese", "Quentin Tarantino"
+    });
+
+    final Person[] ACTORS = makePeople(new String[]{
+            "Robert De Niro", "Nick Nolte", "Jessica Lange", "Juliette Lewis",
+            "Jodie Foster", "Cybill Shepherd", "Albert Brooks",
+            "John Travolta", "Uma Thurman"
+    });
+
     final Person[] ACTORS_BY_ACTIVITY = makePeople(new String[]{
             "Robert De Niro",
             "Albert Brooks",
@@ -90,6 +91,7 @@ class MovidaCoreTest {
             "Nick Nolte",
             "Uma Thurman"
     });
+
     MovidaCore sut;
 
     MovidaCoreTest() {
@@ -106,21 +108,24 @@ class MovidaCoreTest {
     void setUp() {
         this.sut = new MovidaCore(new MovidaPersistence());
         this.sut.setMap(MapImplementation.ArrayOrdinato);
+
         Arrays.stream(this.MOVIES).forEach(m -> this.sut.load(m));
         this.sut.finalizeLoad();
     }
 
-
     @Test
     void clear() {
         this.sut.clear();
+
         assertEquals(0, this.sut.countDirectors());
         assertEquals(0, this.sut.countActors());
         assertEquals(0, this.sut.countMovies());
+
         Arrays.stream(this.MOVIES).forEach(m -> assertFalse(this.sut.deleteMovieByTitle(m.getTitle())));
         Arrays.stream(this.MOVIES).forEach(m -> assertNull(this.sut.getMovieByTitle(m.getTitle())));
         Arrays.stream(this.ACTORS).forEach(a -> assertNull(this.sut.getActorByName(a.getName())));
         Arrays.stream(this.DIRECTORS).forEach(d -> assertNull(this.sut.getDirectorByName(d.getName())));
+
         assertEquals(0, this.sut.getAllMovies().length);
         assertEquals(0, this.sut.streamActors().count());
         assertEquals(0, this.sut.streamDirectors().count());
@@ -129,12 +134,15 @@ class MovidaCoreTest {
         assertEquals(0, this.sut.searchMostActiveActors(this.ACTORS_BY_ACTIVITY.length).length);
         assertEquals(0, this.sut.searchMostRecentMovies(this.MOVIES_BY_YEAR.length).length);
         assertEquals(0, this.sut.searchMostVotedMovies(this.MOVIES_BY_VOTES.length).length);
+
         for (final var movie : this.MOVIES_BY_YEAR) {
             assertEquals(0, this.sut.searchMoviesInYear(movie.getYear()).length);
         }
+
         for (final var movie : this.MOVIES_BY_YEAR) {
             assertEquals(0, this.sut.searchMoviesDirectedBy(movie.getDirector().getName()).length);
         }
+
         for (final var actor : this.ACTORS_BY_ACTIVITY) {
             assertEquals(0, this.sut.searchMoviesStarredBy(actor.getName()).length);
         }
@@ -162,6 +170,80 @@ class MovidaCoreTest {
             assertTrue(this.sut.deleteMovieByTitle(movie.getTitle()));
             assertEquals(moviesCount - 1, this.sut.countMovies());
             assertNull(this.sut.getMovieByTitle(movie.getTitle()));
+        }
+
+        assertEquals(0, this.sut.countDirectors());
+        assertEquals(0, this.sut.countActors());
+        assertEquals(0, this.sut.countMovies());
+
+        Arrays.stream(this.MOVIES).forEach(m -> assertFalse(this.sut.deleteMovieByTitle(m.getTitle())));
+        Arrays.stream(this.MOVIES).forEach(m -> assertNull(this.sut.getMovieByTitle(m.getTitle())));
+        Arrays.stream(this.ACTORS).forEach(a -> assertNull(this.sut.getActorByName(a.getName())));
+        Arrays.stream(this.DIRECTORS).forEach(d -> assertNull(this.sut.getDirectorByName(d.getName())));
+
+        assertEquals(0, this.sut.getAllMovies().length);
+        assertEquals(0, this.sut.streamActors().count());
+        assertEquals(0, this.sut.streamDirectors().count());
+        assertEquals(0, this.sut.streamMovies().count());
+        assertEquals(0, this.sut.searchMoviesByTitle("").length);
+        assertEquals(0, this.sut.searchMostActiveActors(this.ACTORS_BY_ACTIVITY.length).length);
+        assertEquals(0, this.sut.searchMostRecentMovies(this.MOVIES_BY_YEAR.length).length);
+        assertEquals(0, this.sut.searchMostVotedMovies(this.MOVIES_BY_VOTES.length).length);
+
+        for (final var movie : this.MOVIES_BY_YEAR) {
+            assertEquals(0, this.sut.searchMoviesInYear(movie.getYear()).length);
+        }
+
+        for (final var movie : this.MOVIES_BY_YEAR) {
+            assertEquals(0, this.sut.searchMoviesDirectedBy(movie.getDirector().getName()).length);
+        }
+
+        for (final var actor : this.ACTORS_BY_ACTIVITY) {
+            assertEquals(0, this.sut.searchMoviesStarredBy(actor.getName()).length);
+        }
+    }
+
+    @Test
+    void testDeleteMovieByTitleWorksOnEdgeCases() {
+        this.sut.deleteMovieByTitle("cApE FEaR");
+        assertEquals(this.MOVIES.length - 1, this.sut.countMovies());
+        assertEquals(2, this.sut.countDirectors());
+
+        {
+            final var movies = this.sut.searchMoviesInYear(1991);
+            assertEquals(0, movies.length);
+        }
+        {
+            final var movies = this.sut.searchMoviesDirectedBy("MarTIn ScorsEsE");
+            assertEquals(1, movies.length);
+            assertEquals("Taxi Driver", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMoviesStarredBy("JohN TRavolTa");
+            assertEquals(1, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMostRecentMovies(this.MOVIES.length);
+            assertEquals(2, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+            assertEquals("Taxi Driver", movies[1].getTitle());
+        }
+        {
+            final var movies = this.sut.searchMostVotedMovies(this.MOVIES.length);
+            assertEquals(2, movies.length);
+            assertEquals("Pulp Fiction", movies[0].getTitle());
+            assertEquals("Taxi Driver", movies[1].getTitle());
+        }
+        {
+            final var actors = this.sut.searchMostActiveActors(this.ACTORS.length);
+            assertEquals(6, actors.length);
+            assertEquals("Albert Brooks", actors[0].getName());
+            assertEquals("Cybill Shepherd", actors[1].getName());
+            assertEquals("Jodie Foster", actors[2].getName());
+            assertEquals("John Travolta", actors[3].getName());
+            assertEquals("Robert De Niro", actors[4].getName());
+            assertEquals("Uma Thurman", actors[5].getName());
         }
     }
 
@@ -369,6 +451,7 @@ class MovidaCoreTest {
     @Test
     void searchMostVotedMovies() {
         final var result = this.sut.searchMostVotedMovies(this.MOVIES_BY_VOTES.length);
+
         assertEquals(this.MOVIES_BY_VOTES.length, result.length);
         for (int i = 0; this.MOVIES_BY_VOTES.length > i; ++i) {
             assertEquals(this.MOVIES_BY_VOTES[i].getTitle(), result[i].getTitle());
@@ -378,6 +461,7 @@ class MovidaCoreTest {
     @Test
     void searchMostRecentMovies() {
         final var result = this.sut.searchMostRecentMovies(this.MOVIES_BY_YEAR.length);
+
         assertEquals(this.MOVIES_BY_YEAR.length, result.length);
         for (int i = 0; this.MOVIES_BY_YEAR.length > i; ++i) {
             assertEquals(this.MOVIES_BY_YEAR[i].getTitle(), result[i].getTitle());
@@ -387,6 +471,7 @@ class MovidaCoreTest {
     @Test
     void searchMostActiveActors() {
         final var result = this.sut.searchMostActiveActors(this.ACTORS_BY_ACTIVITY.length);
+
         assertEquals(this.ACTORS_BY_ACTIVITY.length, result.length);
         for (int i = 0; this.ACTORS_BY_ACTIVITY.length > i; ++i) {
             assertEquals(this.ACTORS_BY_ACTIVITY[i].getName(), result[i].getName());
