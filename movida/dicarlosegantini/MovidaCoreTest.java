@@ -106,7 +106,7 @@ class MovidaCoreTest {
 
     @BeforeEach
     void setUp() {
-        this.sut = new MovidaCore(new MovidaPersistence());
+        this.sut = new MovidaCore();
         this.sut.setMap(MapImplementation.ArrayOrdinato);
 
         Arrays.stream(this.MOVIES).forEach(m -> this.sut.load(m));

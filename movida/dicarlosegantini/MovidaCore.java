@@ -62,6 +62,10 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
     private ISort sortingAlgorithm;
     private MapImplementation mapImplementation;
 
+    public MovidaCore() {
+        this(new MovidaPersistence());
+    }
+
     public MovidaCore(final IPersistence persistence) {
         this.persistence = persistence;
 
