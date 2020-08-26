@@ -27,12 +27,14 @@
 
 package movida.dicarlosegantini.map;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class IMapTest {
-    @org.junit.jupiter.api.Test
+    @Test
     void testHashIndirizzamentoAperto() {
         this.testAdd(new HashIndirizzamentoAperto<>());
         this.testDel(new HashIndirizzamentoAperto<>());
@@ -44,7 +46,7 @@ class IMapTest {
         this.testToHashIndirizzamentoAperto(new ArrayOrdinato<>());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testArrayOrdinato() {
         this.testAdd(new ArrayOrdinato<>());
         this.testDel(new ArrayOrdinato<>());
