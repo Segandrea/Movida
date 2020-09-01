@@ -32,6 +32,7 @@ import movida.dicarlosegantini.array.DynamicArray;
 import movida.dicarlosegantini.map.ArrayOrdinato;
 import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.map.IMap;
+import movida.dicarlosegantini.set.HashSet;
 import movida.dicarlosegantini.sort.ISort;
 import movida.dicarlosegantini.sort.QuickSort;
 import movida.dicarlosegantini.sort.SelectionSort;
@@ -42,19 +43,34 @@ import java.util.stream.Stream;
 
 public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch {
     private static final Comparator<Movie> orderByTitle = (x, y) -> x.getTitle().compareToIgnoreCase(y.getTitle());
-    private static final Comparator<Movie> orderByVotes = Comparator.comparing(Movie::getVotes).reversed().thenComparing(orderByTitle);
-    private static final Comparator<Movie> orderByYear = Comparator.comparing(Movie::getYear).reversed().thenComparing(orderByTitle);
+    private static final Comparator<Movie> orderByVotes =
+            Comparator.comparing(Movie::getVotes).reversed().thenComparing(orderByTitle);
+    private static final Comparator<Movie> orderByYear =
+            Comparator.comparing(Movie::getYear).reversed().thenComparing(orderByTitle);
+    // Hash of the actors in a collaboration combined with xor
+    private static final Hasher<Collaboration> collaborationHasher =
+            c -> c.getActorA().hashCode() ^ c.getActorB().hashCode();
+    // Order of the actors in a collaboration is irrelevant
+    private static final Eq<Collaboration> collaborationEquals =
+            (c1, c2) -> {
+                if (c1 == c2) {
+                    return true;
+                }
+                if (c1.getActorA() == c2.getActorA() && c1.getActorB() == c2.getActorB()) {
+                    return true;
+                }
+                return c1.getActorB() == c2.getActorA() && c1.getActorA() == c2.getActorB();
+            };
 
     private final IPersistence persistence;
 
     private final DynamicArray<Person> actorsOrderedByActivity;
     private final DynamicArray<Movie> moviesOrderedByVotes;
     private final DynamicArray<Movie> moviesOrderedByYear;
-
+    private final HashSet<Collaboration> collaborations;
     private IMap<String, DynamicArray<Movie>> moviesByDirector;
     private IMap<String, DynamicArray<Movie>> moviesByActor;
     private IMap<Integer, DynamicArray<Movie>> moviesByYear;
-
     private IMap<String, Person> directors;
     private IMap<String, Person> actors;
     private IMap<String, Movie> movies;
@@ -72,6 +88,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         this.actorsOrderedByActivity = new DynamicArray<>();
         this.moviesOrderedByVotes = new DynamicArray<>();
         this.moviesOrderedByYear = new DynamicArray<>();
+        this.collaborations = new HashSet<>(collaborationHasher, collaborationEquals);
 
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
         this.moviesByActor = new HashIndirizzamentoAperto<>();
@@ -138,10 +155,16 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         this.moviesByDirector.getOrAdd(directorName, DynamicArray::new).append(movie);
         this.moviesByYear.getOrAdd(movie.getYear(), DynamicArray::new).append(movie);
 
-        for (final var actor : movie.getCast()) {
+        final var cast = movie.getCast();
+        for (int i = 0; cast.length > i; ++i) {
+            final var actor = cast[i];
             final var actorName = actor.getName().toLowerCase();
             this.moviesByActor.getOrAdd(actorName, DynamicArray::new).append(movie);
             this.actors.add(actorName, actor);
+
+            for (int j = i + 1; cast.length > j; ++j) {
+                this.collaborations.getOrAdd(new Collaboration(actor, cast[j])).addMovie(movie);
+            }
         }
 
         this.directors.add(directorName, movie.getDirector());
@@ -246,6 +269,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         this.actorsOrderedByActivity.clear();
         this.moviesOrderedByVotes.clear();
         this.moviesOrderedByYear.clear();
+        this.collaborations.clear();
 
         this.moviesByDirector.clear();
         this.moviesByActor.clear();
@@ -283,8 +307,19 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
             this.deleteMovieDirectedBy(movie, movie.getDirector());
             this.deleteMovieInYear(movie, movie.getYear());
 
-            for (final var actor : movie.getCast()) {
-                this.deleteMovieStarredBy(movie, actor);
+            final var cast = movie.getCast();
+            for (int i = 0; i < cast.length; ++i) {
+                this.deleteMovieStarredBy(movie, cast[i]);
+
+                for (int j = i + 1; j < cast.length; ++j) {
+                    final var collaboration = this.collaborations.get(new Collaboration(cast[i], cast[j]));
+                    assert null != collaboration;
+
+                    collaboration.removeMovie(movie);
+                    if (0 == collaboration.countMovies()) {
+                        this.collaborations.del(collaboration);
+                    }
+                }
             }
 
             // activities must be recomputed after any update to actors map

@@ -58,11 +58,29 @@ public final class HashSet<K> implements ISet<K> {
         return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
+    public K getOrAdd(final K key) {
+        assert null != key;
+        this.reserve(1);
+        final var index = this.rawAdd(key);
+        return (0 > index) ? this.keys[-(index + 1)] : this.keys[index];
+    }
+
+    public K get(final K key) {
+        assert null != key;
+        final var index = this.indexOf(key);
+
+        if (0 > index) {
+            return null;
+        }
+
+        return this.keys[index];
+    }
+
     @Override
     public boolean add(final K key) {
         assert null != key;
         this.reserve(1);
-        return this.rawAdd(key);
+        return 0 > this.rawAdd(key);
     }
 
     @Override
@@ -172,20 +190,20 @@ public final class HashSet<K> implements ISet<K> {
         return -(emptyIndex + 1);
     }
 
-    private boolean rawAdd(final K key) {
+    private int rawAdd(final K key) {
         assert null != key;
-        var index = this.indexOf(key);
+        final var index = this.indexOf(key);
 
         if (0 <= index) {
-            return false;
+            return index;
         }
 
-        index = -(index + 1);
-        assert index < this.capacity();
+        final var keyIndex = -(index + 1);
+        assert keyIndex < this.capacity();
 
-        this.keys[index] = key;
+        this.keys[keyIndex] = key;
         this.size += 1;
 
-        return true;
+        return index;
     }
 }

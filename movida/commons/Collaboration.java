@@ -1,35 +1,40 @@
 package movida.commons;
 
-import java.util.ArrayList;
+import movida.dicarlosegantini.set.HashSet;
 
 public class Collaboration {
+    private final Person actorA;
+    private final Person actorB;
+    private final HashSet<Movie> movies;
 
-	Person actorA;
-	Person actorB;
-	ArrayList<Movie> movies;
-	
-	public Collaboration(Person actorA, Person actorB) {
-		this.actorA = actorA;
-		this.actorB = actorB;
-		this.movies = new ArrayList<Movie>();
-	}
+    public Collaboration(final Person actorA, final Person actorB) {
+        this.actorA = actorA;
+        this.actorB = actorB;
+        this.movies = new HashSet<>();
+    }
 
-	public Person getActorA() {
-		return actorA;
-	}
+    public void addMovie(final Movie movie) {
+        this.movies.add(movie);
+    }
 
-	public Person getActorB() {
-		return actorB;
-	}
+    public Person getActorA() {
+        return this.actorA;
+    }
 
-	public Double getScore(){
-		
-		Double score = 0.0;
-		
-		for (Movie m : movies)
-			score += m.getVotes();
-		
-		return score / movies.size();
-	}
-	
+    public Person getActorB() {
+        return this.actorB;
+    }
+
+    public Double getScore() {
+        final double score = this.movies.stream().map(Movie::getVotes).reduce(0, Integer::sum);
+        return score / this.movies.size();
+    }
+
+    public Integer countMovies() {
+        return this.movies.size();
+    }
+
+    public void removeMovie(final Movie movie) {
+        this.movies.del(movie);
+    }
 }
