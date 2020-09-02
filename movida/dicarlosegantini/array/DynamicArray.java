@@ -81,6 +81,7 @@ public final class DynamicArray<T> {
         final var item = this.array[index];
         System.arraycopy(this.array, index + 1, this.array, index, this.size - index - 1);
         this.size -= 1;
+        this.array[this.size] = null;
 
         return item;
     }
@@ -96,6 +97,7 @@ public final class DynamicArray<T> {
     }
 
     public void clear() {
+        Arrays.fill(this.array, null);
         this.size = 0;
     }
 
