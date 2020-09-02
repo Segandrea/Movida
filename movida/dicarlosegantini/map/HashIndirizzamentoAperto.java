@@ -212,11 +212,9 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         var emptyIndex = (int) (hash % capacity);
 
         if (!this.empty()) {
-            var iter = 0;
-            var index = emptyIndex;
             var deletedNotAlreadyEncountered = true;
 
-            do {
+            for (int i = 0, index = emptyIndex; i < capacity; ++i, index = (int) ((hash + i) % capacity)) {
                 final var keyItem = this.keys[index];
 
                 if (null == keyItem) {
@@ -225,17 +223,17 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                     }
                     break;
                 }
+                if (this.DELETED == keyItem) {
+                    if (deletedNotAlreadyEncountered) {
+                        emptyIndex = index;
+                    }
+                    deletedNotAlreadyEncountered = false;
+                    continue;
+                }
                 if (this.eq.test(key, keyItem)) {
                     return index;
                 }
-                if (this.DELETED == keyItem && deletedNotAlreadyEncountered) {
-                    emptyIndex = index;
-                    deletedNotAlreadyEncountered = false;
-                }
-
-                iter += 1;
-                index = (int) ((hash + iter) % capacity);
-            } while (iter < capacity);
+            }
         }
 
         return -(emptyIndex + 1);
