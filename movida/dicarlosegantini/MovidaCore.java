@@ -64,10 +64,12 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
 
     private final IPersistence persistence;
 
+    private final HashSet<Collaboration> collaborations;
+    private final HashIndirizzamentoAperto<Person, HashSet<Collaboration>> collaborationGraph;
+
     private final DynamicArray<Person> actorsOrderedByActivity;
     private final DynamicArray<Movie> moviesOrderedByVotes;
     private final DynamicArray<Movie> moviesOrderedByYear;
-    private final HashSet<Collaboration> collaborations;
     private IMap<String, DynamicArray<Movie>> moviesByDirector;
     private IMap<String, DynamicArray<Movie>> moviesByActor;
     private IMap<Integer, DynamicArray<Movie>> moviesByYear;
@@ -85,10 +87,12 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
     public MovidaCore(final IPersistence persistence) {
         this.persistence = persistence;
 
+        this.collaborations = new HashSet<>(collaborationHasher, collaborationEquals);
+        this.collaborationGraph = new HashIndirizzamentoAperto<>();
+
         this.actorsOrderedByActivity = new DynamicArray<>();
         this.moviesOrderedByVotes = new DynamicArray<>();
         this.moviesOrderedByYear = new DynamicArray<>();
-        this.collaborations = new HashSet<>(collaborationHasher, collaborationEquals);
 
         this.moviesByDirector = new HashIndirizzamentoAperto<>();
         this.moviesByActor = new HashIndirizzamentoAperto<>();
@@ -163,7 +167,15 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
             this.actors.add(actorName, actor);
 
             for (int j = i + 1; cast.length > j; ++j) {
-                this.collaborations.getOrAdd(new Collaboration(actor, cast[j])).addMovie(movie);
+                final var collaboration = this.collaborations.getOrAdd(new Collaboration(actor, cast[j]));
+
+                collaboration.addMovie(movie);
+                this.collaborationGraph
+                        .getOrAdd(actor, () -> new HashSet<>(collaborationHasher, collaborationEquals))
+                        .add(collaboration);
+                this.collaborationGraph
+                        .getOrAdd(cast[j], () -> new HashSet<>(collaborationHasher, collaborationEquals))
+                        .add(collaboration);
             }
         }
 
@@ -266,10 +278,12 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
 
     @Override
     public void clear() {
+        this.collaborations.clear();
+        this.collaborationGraph.clear();
+
         this.actorsOrderedByActivity.clear();
         this.moviesOrderedByVotes.clear();
         this.moviesOrderedByYear.clear();
-        this.collaborations.clear();
 
         this.moviesByDirector.clear();
         this.moviesByActor.clear();
@@ -314,6 +328,24 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
                 for (int j = i + 1; j < cast.length; ++j) {
                     final var collaboration = this.collaborations.get(new Collaboration(cast[i], cast[j]));
                     assert null != collaboration;
+
+                    //TODO: make a function
+                    final var actorACollaborations =
+                            this.collaborationGraph.get(collaboration.getActorA());
+                    assert null != actorACollaborations;
+                    actorACollaborations.del(collaboration);
+                    if (actorACollaborations.empty()) {
+                        this.collaborationGraph.del(collaboration.getActorA());
+                    }
+
+                    //TODO: insert in the function above
+                    final var actorBCollaborations =
+                            this.collaborationGraph.get(collaboration.getActorB());
+                    assert null != actorBCollaborations;
+                    actorBCollaborations.del(collaboration);
+                    if (actorBCollaborations.empty()) {
+                        this.collaborationGraph.del(collaboration.getActorB());
+                    }
 
                     collaboration.removeMovie(movie);
                     if (0 == collaboration.countMovies()) {
