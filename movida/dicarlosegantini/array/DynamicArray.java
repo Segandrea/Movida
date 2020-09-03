@@ -75,7 +75,7 @@ public final class DynamicArray<T> {
         this.add(this.size, item);
     }
 
-    public T del(final int index) {
+    public T remove(final int index) {
         assert index < this.size;
 
         final var item = this.array[index];
@@ -152,7 +152,7 @@ public final class DynamicArray<T> {
             return false;
         }
 
-        this.del(index);
+        this.remove(index);
         return true;
     }
 
@@ -176,7 +176,7 @@ public final class DynamicArray<T> {
         return this.size;
     }
 
-    public boolean empty() {
+    public boolean isEmpty() {
         return 0 == this.size;
     }
 }

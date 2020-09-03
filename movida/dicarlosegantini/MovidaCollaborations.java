@@ -57,21 +57,21 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
 
         final var actorACollaborators = this.graph.get(collaboration.getActorA());
         assert null != actorACollaborators;
-        actorACollaborators.del(actorB);
-        if (actorACollaborators.empty()) {
-            this.graph.del(collaboration.getActorA());
+        actorACollaborators.remove(actorB);
+        if (actorACollaborators.isEmpty()) {
+            this.graph.remove(collaboration.getActorA());
         }
 
         final var actorBCollaborators = this.graph.get(collaboration.getActorB());
         assert null != actorBCollaborators;
-        actorBCollaborators.del(actorA);
-        if (actorBCollaborators.empty()) {
-            this.graph.del(collaboration.getActorB());
+        actorBCollaborators.remove(actorA);
+        if (actorBCollaborators.isEmpty()) {
+            this.graph.remove(collaboration.getActorB());
         }
 
         collaboration.removeMovie(movie);
         if (0 == collaboration.countMovies()) {
-            this.collaborations.del(collaboration);
+            this.collaborations.remove(collaboration);
         }
     }
 

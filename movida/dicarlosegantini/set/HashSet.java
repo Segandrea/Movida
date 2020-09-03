@@ -73,7 +73,7 @@ public final class HashSet<K> implements ISet<K> {
     }
 
     @Override
-    public boolean del(final K key) {
+    public boolean remove(final K key) {
         assert null != key;
         final var index = this.indexOf(key);
 
@@ -149,7 +149,7 @@ public final class HashSet<K> implements ISet<K> {
         final var capacity = this.capacity();
         var emptyIndex = (int) (hash % capacity);
 
-        if (!this.empty()) {
+        if (!this.isEmpty()) {
             var deletedNotAlreadyEncountered = true;
 
             for (int i = 0, index = emptyIndex; i < capacity; ++i, index = (int) ((hash + i) % capacity)) {

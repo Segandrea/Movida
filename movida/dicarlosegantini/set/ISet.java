@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 public interface ISet<K> {
     boolean add(final K key);
 
-    boolean del(final K key);
+    boolean remove(final K key);
 
     boolean has(final K key);
 
@@ -46,7 +46,7 @@ public interface ISet<K> {
 
     void clear();
 
-    default boolean empty() {
+    default boolean isEmpty() {
         return 0 == this.size();
     }
 }

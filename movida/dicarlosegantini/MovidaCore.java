@@ -100,9 +100,9 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         final var moviesByDirector = this.moviesByDirector.get(directorName);
 
         moviesByDirector.binaryRemove(movie, orderByTitle);
-        if (moviesByDirector.empty()) {
-            this.moviesByDirector.del(directorName);
-            this.directors.del(directorName);
+        if (moviesByDirector.isEmpty()) {
+            this.moviesByDirector.remove(directorName);
+            this.directors.remove(directorName);
         }
     }
 
@@ -111,9 +111,9 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         final var moviesByActor = this.moviesByActor.get(actorName);
 
         moviesByActor.binaryRemove(movie, orderByTitle);
-        if (moviesByActor.empty()) {
-            this.moviesByActor.del(actorName);
-            this.actors.del(actorName);
+        if (moviesByActor.isEmpty()) {
+            this.moviesByActor.remove(actorName);
+            this.actors.remove(actorName);
         }
     }
 
@@ -121,8 +121,8 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
         final var moviesByYear = this.moviesByYear.get(year);
 
         moviesByYear.binaryRemove(movie, orderByTitle);
-        if (moviesByYear.empty()) {
-            this.moviesByYear.del(year);
+        if (moviesByYear.isEmpty()) {
+            this.moviesByYear.remove(year);
         }
 
         this.moviesOrderedByYear.binaryRemove(movie, orderByYear);
@@ -275,7 +275,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
 
     @Override
     public boolean deleteMovieByTitle(final String title) {
-        final var movie = this.movies.del(title.toLowerCase());
+        final var movie = this.movies.remove(title.toLowerCase());
 
         if (null != movie) {
             this.moviesOrderedByVotes.binaryRemove(movie, orderByVotes);

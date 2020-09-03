@@ -43,7 +43,7 @@ class DynamicArrayTest {
             final var currentSize = this.sut.size();
 
             this.sut.append(i);
-            assertFalse(this.sut.empty());
+            assertFalse(this.sut.isEmpty());
             assertEquals(currentSize + 1, this.sut.size());
             assertTrue(this.sut.size() <= this.sut.capacity());
 
@@ -59,7 +59,7 @@ class DynamicArrayTest {
     @BeforeEach
     void setUp() {
         this.sut = new DynamicArray<>();
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(0, this.sut.capacity());
     }
@@ -103,14 +103,14 @@ class DynamicArrayTest {
     @Test
     void add() {
         this.sut.add(0, 1);
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(1, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(1, this.sut.get(0));
         assertArrayEquals(new Integer[]{1}, this.sut.stream().toArray(Integer[]::new));
 
         this.sut.add(0, 0);
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(2, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -118,7 +118,7 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0, 1}, this.sut.stream().toArray(Integer[]::new));
 
         this.sut.append(2);
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(3, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -131,23 +131,23 @@ class DynamicArrayTest {
     void del() {
         final var capacity = this.seed(3);
 
-        assertEquals(1, this.sut.del(1));
-        assertFalse(this.sut.empty());
+        assertEquals(1, this.sut.remove(1));
+        assertFalse(this.sut.isEmpty());
         assertEquals(2, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertEquals(0, this.sut.get(0));
         assertEquals(2, this.sut.get(1));
         assertArrayEquals(new Integer[]{0, 2}, this.sut.stream().toArray(Integer[]::new));
 
-        assertEquals(2, this.sut.del(1));
-        assertFalse(this.sut.empty());
+        assertEquals(2, this.sut.remove(1));
+        assertFalse(this.sut.isEmpty());
         assertEquals(1, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertEquals(0, this.sut.get(0));
         assertArrayEquals(new Integer[]{0}, this.sut.stream().toArray(Integer[]::new));
 
-        assertEquals(0, this.sut.del(0));
-        assertTrue(this.sut.empty());
+        assertEquals(0, this.sut.remove(0));
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertArrayEquals(new Integer[]{}, this.sut.stream().toArray(Integer[]::new));
@@ -158,7 +158,7 @@ class DynamicArrayTest {
         final var capacity = this.seed(5);
 
         this.sut.clear();
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertEquals(0, this.sut.stream().count());
@@ -175,7 +175,7 @@ class DynamicArrayTest {
                 assertEquals(i, items[i]);
             }
 
-            this.sut.del(size - 1);
+            this.sut.remove(size - 1);
         }
 
         assertEquals(0, this.sut.stream().count());
@@ -192,14 +192,14 @@ class DynamicArrayTest {
     @Test
     void binaryInsert() {
         assertTrue(this.sut.binaryInsert(1, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(1, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(1, this.sut.get(0));
         assertArrayEquals(new Integer[]{1}, this.sut.stream().toArray(Integer[]::new));
 
         assertTrue(this.sut.binaryInsert(0, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(2, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -207,7 +207,7 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0, 1}, this.sut.stream().toArray(Integer[]::new));
 
         assertTrue(this.sut.binaryInsert(2, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(3, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -217,7 +217,7 @@ class DynamicArrayTest {
 
         for (int i = 0; i < this.sut.size(); ++i) {
             assertFalse(this.sut.binaryInsert(i, Integer::compareTo));
-            assertFalse(this.sut.empty());
+            assertFalse(this.sut.isEmpty());
             assertEquals(3, this.sut.size());
             assertTrue(this.sut.size() <= this.sut.capacity());
             assertEquals(0, this.sut.get(0));
@@ -232,7 +232,7 @@ class DynamicArrayTest {
         final var capacity = this.seed(3);
 
         assertFalse(this.sut.binaryRemove(-1, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(3, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -241,7 +241,7 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0, 1, 2}, this.sut.stream().toArray(Integer[]::new));
 
         assertFalse(this.sut.binaryRemove(this.sut.size(), Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(3, this.sut.size());
         assertTrue(this.sut.size() <= this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -250,7 +250,7 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0, 1, 2}, this.sut.stream().toArray(Integer[]::new));
 
         assertTrue(this.sut.binaryRemove(1, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(2, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertEquals(0, this.sut.get(0));
@@ -258,21 +258,21 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0, 2}, this.sut.stream().toArray(Integer[]::new));
 
         assertTrue(this.sut.binaryRemove(2, Integer::compareTo));
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(1, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertEquals(0, this.sut.get(0));
         assertArrayEquals(new Integer[]{0}, this.sut.stream().toArray(Integer[]::new));
 
         assertTrue(this.sut.binaryRemove(0, Integer::compareTo));
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
         assertArrayEquals(new Integer[]{}, this.sut.stream().toArray(Integer[]::new));
 
         for (int i = 0; 3 > i; ++i) {
             assertFalse(this.sut.binaryRemove(i, Integer::compareTo));
-            assertTrue(this.sut.empty());
+            assertTrue(this.sut.isEmpty());
             assertEquals(0, this.sut.size());
             assertEquals(capacity, this.sut.capacity());
             assertArrayEquals(new Integer[]{}, this.sut.stream().toArray(Integer[]::new));
@@ -291,7 +291,7 @@ class DynamicArrayTest {
         assertArrayEquals(new Integer[]{0}, this.sut.slice(Integer[]::new, 0, 1));
         assertArrayEquals(new Integer[]{0, 1}, this.sut.slice(Integer[]::new, 0, 2));
 
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(3, this.sut.size());
         assertEquals(capacity, this.sut.capacity());
     }
@@ -305,7 +305,7 @@ class DynamicArrayTest {
         this.sut.append(4);
         this.sut.append(0);
 
-        assertFalse(this.sut.empty());
+        assertFalse(this.sut.isEmpty());
         assertEquals(6, this.sut.size());
 
         this.sut.sort(QuickSort.getInstance(), Integer::compareTo);
@@ -319,7 +319,7 @@ class DynamicArrayTest {
     void append() {
         for (int x = 0; 10 > x; ++x) {
             this.sut.append(x);
-            assertFalse(this.sut.empty());
+            assertFalse(this.sut.isEmpty());
             assertEquals(x + 1, this.sut.size());
             assertTrue(this.sut.size() <= this.sut.capacity());
 

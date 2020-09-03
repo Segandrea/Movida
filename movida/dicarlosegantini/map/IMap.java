@@ -42,7 +42,7 @@ public interface IMap<K, V> {
 
     V get(final K key);
 
-    V del(final K key);
+    V remove(final K key);
 
     boolean has(final K key);
 
@@ -60,7 +60,7 @@ public interface IMap<K, V> {
 
     void clear();
 
-    default boolean empty() {
+    default boolean isEmpty() {
         return 0 == this.size();
     }
 }

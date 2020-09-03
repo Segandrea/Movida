@@ -46,7 +46,7 @@ public class Collaboration {
     }
 
     public void removeMovie(final Movie movie) {
-        this.movies.del(movie);
+        this.movies.remove(movie);
     }
 
     public Integer countMovies() {

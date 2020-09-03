@@ -89,11 +89,11 @@ class IMapTest {
                     fail();
             }
 
-            assertEquals(k, sut.del(k));
+            assertEquals(k, sut.remove(k));
             assertEquals(keys.size(), sut.size());
             assertFalse(sut.has(k));
             assertNull(sut.get(k));
-            assertNull(sut.del(k));
+            assertNull(sut.remove(k));
             assertEquals(keys.size(), sut.size());
             assertFalse(sut.has(k));
         }
@@ -124,47 +124,47 @@ class IMapTest {
     }
 
     void testBasicOp(IMap<String, Integer> sut) {
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
 
         assertNull(sut.add("k1", 15));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(1, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k1"));
         assertEquals(15, sut.get("k1"));
 
         assertEquals(15, sut.getOrAdd("k1", () -> 7));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(1, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k1"));
         assertEquals(15, sut.get("k1"));
 
         assertEquals(26, sut.getOrAdd("k2", () -> 26));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(2, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k2"));
         assertEquals(26, sut.get("k2"));
 
-        assertEquals(15, sut.del("k1"));
-        assertFalse(sut.empty());
+        assertEquals(15, sut.remove("k1"));
+        assertFalse(sut.isEmpty());
         assertEquals(1, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertFalse(sut.has("k1"));
         assertNull(sut.get("k1"));
 
         assertNull(sut.add("k1", 15));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(2, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k1"));
         assertEquals(15, sut.get("k1"));
 
         assertEquals(15, sut.add("k1", 99));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(2, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertTrue(sut.has("k1"));
@@ -172,7 +172,7 @@ class IMapTest {
     }
 
     void testStream(IMap<Integer, Integer> sut) {
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.stream().count());
         for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 10);
@@ -188,7 +188,7 @@ class IMapTest {
     void testToHashIndirizzamentoAperto(IMap<Integer, Integer> source) {
         var sut = HashIndirizzamentoAperto.from(source);
 
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
         for (int i = 1; 10 > i; ++i) {
@@ -196,7 +196,7 @@ class IMapTest {
         }
 
         sut = HashIndirizzamentoAperto.from(source);
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(9, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertEquals(
@@ -210,7 +210,7 @@ class IMapTest {
     void testToArrayOrdinato(IMap<Integer, Integer> source) {
         var sut = ArrayOrdinato.from(source);
 
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
         for (int i = 1; 10 > i; ++i) {
@@ -218,7 +218,7 @@ class IMapTest {
         }
 
         sut = ArrayOrdinato.from(source);
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(9, sut.size());
         assertTrue(sut.capacity() >= sut.size());
         assertEquals(
@@ -230,15 +230,15 @@ class IMapTest {
     }
 
     void testClear(IMap<Integer, Integer> sut) {
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 10);
         }
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(9, sut.size());
 
         sut.clear();
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.stream().count());
 
@@ -250,7 +250,7 @@ class IMapTest {
         for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 100);
         }
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(9, sut.size());
 
         assertEquals(
@@ -262,19 +262,19 @@ class IMapTest {
     }
 
     void testGetOrAdd(IMap<Integer, Integer> sut) {
-        assertTrue(sut.empty());
+        assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
 
         assertEquals(42, sut.getOrAdd(42, () -> 42));
         assertTrue(sut.has(42));
         assertEquals(42, sut.get(42));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(1, sut.size());
 
         assertEquals(42, sut.getOrAdd(42, () -> 7));
         assertTrue(sut.has(42));
         assertEquals(42, sut.get(42));
-        assertFalse(sut.empty());
+        assertFalse(sut.isEmpty());
         assertEquals(1, sut.size());
     }
 }

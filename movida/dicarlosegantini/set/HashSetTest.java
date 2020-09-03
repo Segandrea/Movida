@@ -40,7 +40,7 @@ class HashSetTest {
     @BeforeEach
     void setUp() {
         this.sut = new HashSet<>();
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(0, this.sut.capacity());
         assertEquals(0, this.sut.stream().count());
@@ -50,7 +50,7 @@ class HashSetTest {
     void add() {
         for (int i = 0; 16 > i; ++i) {
             assertTrue(this.sut.add(i));
-            assertFalse(this.sut.empty());
+            assertFalse(this.sut.isEmpty());
 
             final var capacity = this.sut.capacity();
             assertEquals(i + 1, this.sut.size());
@@ -97,16 +97,16 @@ class HashSetTest {
                     fail();
             }
 
-            assertFalse(this.sut.empty());
-            assertTrue(this.sut.del(k));
+            assertFalse(this.sut.isEmpty());
+            assertTrue(this.sut.remove(k));
             assertEquals(keys.size(), this.sut.size());
             assertFalse(this.sut.has(k));
-            assertFalse(this.sut.del(k));
+            assertFalse(this.sut.remove(k));
             assertEquals(keys.size(), this.sut.size());
             assertFalse(this.sut.has(k));
         }
 
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
     }
 
     @Test
@@ -117,9 +117,9 @@ class HashSetTest {
             assertTrue(this.sut.add(i));
         }
 
-        assertTrue(this.sut.del(SIZE / 2));
-        assertTrue(this.sut.del(SIZE / 4));
-        assertTrue(this.sut.del(SIZE / 8));
+        assertTrue(this.sut.remove(SIZE / 2));
+        assertTrue(this.sut.remove(SIZE / 4));
+        assertTrue(this.sut.remove(SIZE / 8));
 
         final var EXPECTED = ((SIZE - 1) * (SIZE) / 2) - (SIZE / 2 + SIZE / 4 + SIZE / 8);
         assertEquals(EXPECTED, this.sut.stream().reduce(0, Integer::sum));
@@ -134,7 +134,7 @@ class HashSetTest {
         }
 
         this.sut.clear();
-        assertTrue(this.sut.empty());
+        assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(0, this.sut.stream().count());
     }

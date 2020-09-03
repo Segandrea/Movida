@@ -118,7 +118,7 @@ public final class MovidaPersistence {
             throw x;
         }
 
-        if (!movieData.empty()) {
+        if (!movieData.isEmpty()) {
             consumer.accept(loadMovie(movieData));
         }
     }

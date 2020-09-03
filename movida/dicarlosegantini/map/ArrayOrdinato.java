@@ -93,7 +93,7 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
     }
 
     @Override
-    public V del(final K key) {
+    public V remove(final K key) {
         assert null != key;
         final var index = this.keys.binarySearch(key, K::compareTo);
 
@@ -101,8 +101,8 @@ public final class ArrayOrdinato<K extends Comparable<K>, V> implements IMap<K, 
             return null;
         }
 
-        this.keys.del(index);
-        return this.values.del(index);
+        this.keys.remove(index);
+        return this.values.remove(index);
     }
 
     @Override

@@ -98,7 +98,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     @Override
-    public V del(final K key) {
+    public V remove(final K key) {
         assert null != key;
         final var index = this.indexOf(key);
 
@@ -200,7 +200,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         final var capacity = this.capacity();
         var emptyIndex = (int) (hash % capacity);
 
-        if (!this.empty()) {
+        if (!this.isEmpty()) {
             var deletedNotAlreadyEncountered = true;
 
             for (int i = 0, index = emptyIndex; i < capacity; ++i, index = (int) ((hash + i) % capacity)) {
