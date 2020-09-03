@@ -62,7 +62,7 @@ class MovidaPersistenceTest {
     void load() {
         final var sut = new MovidaPersistence();
         final var actual = new DynamicArray<Movie>();
-        sut.load(new File("movida/dicarlosegantini/test.txt"), actual::append);
+        sut.loadMovies(new File("movida/dicarlosegantini/test.txt"), actual::append);
 
         assertEquals(MOVIES.length, actual.size());
         IntStream.range(0, MOVIES.length).forEach(i -> {
@@ -91,7 +91,7 @@ class MovidaPersistenceTest {
             final var actualFile = File.createTempFile("temp", null);
             actualFile.deleteOnExit();
 
-            sut.store(actualFile, Arrays.stream(MOVIES.clone()));
+            sut.storeMovies(actualFile, Arrays.stream(MOVIES.clone()));
             assertEquals(Files.readString(expectedFile.toPath()), Files.readString(actualFile.toPath()));
         } catch (IOException e) {
             fail();

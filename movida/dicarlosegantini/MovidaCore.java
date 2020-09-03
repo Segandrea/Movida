@@ -47,8 +47,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
     private static final Comparator<Movie> orderByYear =
             Comparator.comparing(Movie::getYear).reversed().thenComparing(orderByTitle);
 
-    private final IPersistence persistence;
-
+    private final MovidaPersistence persistence;
     private final MovidaCollaborations collaborations;
 
     private final DynamicArray<Person> actorsOrderedByActivity;
@@ -65,12 +64,7 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
     private MapImplementation mapImplementation;
 
     public MovidaCore() {
-        this(new MovidaPersistence());
-    }
-
-    public MovidaCore(final IPersistence persistence) {
-        this.persistence = persistence;
-
+        this.persistence = new MovidaPersistence();
         this.collaborations = new MovidaCollaborations();
 
         this.actorsOrderedByActivity = new DynamicArray<>();
@@ -243,13 +237,13 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
 
     @Override
     public void loadFromFile(final File f) {
-        this.persistence.load(f, this::load);
+        this.persistence.loadMovies(f, this::load);
         this.finalizeLoad();
     }
 
     @Override
     public void saveToFile(final File f) {
-        this.persistence.store(f, this.streamMovies());
+        this.persistence.storeMovies(f, this.streamMovies());
     }
 
     @Override

@@ -39,8 +39,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class MovidaPersistence implements IPersistence {
-    static private Movie buildMovie(final IMap<String, String> movieData) {
+public final class MovidaPersistence {
+    private static Movie loadMovie(final IMap<String, String> movieData) {
         final var title = movieData.get("title");
         final var year = Integer.parseInt(movieData.get("year"));
         final var votes = Integer.parseInt(movieData.get("votes"));
@@ -78,8 +78,7 @@ public final class MovidaPersistence implements IPersistence {
         writer.newLine();
     }
 
-    @Override
-    public void load(final File f, final Consumer<Movie> consumer) throws MovidaFileException {
+    public void loadMovies(final File f, final Consumer<Movie> consumer) throws MovidaFileException {
         final var movieData = new HashIndirizzamentoAperto<String, String>();
         movieData.reserve(5);
 
@@ -90,7 +89,7 @@ public final class MovidaPersistence implements IPersistence {
                 line = line.strip();
 
                 if (line.isEmpty()) {
-                    consumer.accept(buildMovie(movieData));
+                    consumer.accept(loadMovie(movieData));
                     movieData.clear();
                     continue;
                 }
@@ -120,12 +119,11 @@ public final class MovidaPersistence implements IPersistence {
         }
 
         if (!movieData.empty()) {
-            consumer.accept(buildMovie(movieData));
+            consumer.accept(loadMovie(movieData));
         }
     }
 
-    @Override
-    public void store(final File f, final Stream<Movie> movies) throws MovidaFileException {
+    public void storeMovies(final File f, final Stream<Movie> movies) throws MovidaFileException {
         try {
             final var writer = new BufferedWriter(new FileWriter(f));
             final var iterator = movies.iterator();
