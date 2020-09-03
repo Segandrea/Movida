@@ -27,9 +27,6 @@
 
 package movida.dicarlosegantini.map;
 
-import movida.dicarlosegantini.Eq;
-import movida.dicarlosegantini.Hasher;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -39,20 +36,12 @@ import java.util.stream.Stream;
 public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
-    private final Hasher<K> hasher;
-    private final Eq<K> eq;
     private V[] values;
     private K[] keys;
     private int size;
 
-    public HashIndirizzamentoAperto() {
-        this(K::hashCode, K::equals);
-    }
-
     @SuppressWarnings({"unchecked"})
-    public HashIndirizzamentoAperto(final Hasher<K> hasher, final Eq<K> eq) {
-        this.hasher = hasher;
-        this.eq = eq;
+    public HashIndirizzamentoAperto() {
         this.values = (V[]) new Object[0];
         this.keys = (K[]) new Object[0];
         this.size = 0;
@@ -66,7 +55,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     private long computeHash(final K key) {
-        final var hashCode = this.hasher.hash(key);
+        final var hashCode = key.hashCode();
         return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
@@ -230,7 +219,7 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                     deletedNotAlreadyEncountered = false;
                     continue;
                 }
-                if (this.eq.test(key, keyItem)) {
+                if (key.equals(keyItem)) {
                     return index;
                 }
             }

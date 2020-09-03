@@ -35,20 +35,11 @@ import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.set.HashSet;
 
 public final class MovidaCollaborations implements IMovidaCollaborations {
-    // Hash of the actors in a collaboration combined with xor
-    private static final Hasher<Collaboration> collaborationHasher =
-            c -> c.getActorA().getName().hashCode() ^ c.getActorB().getName().hashCode();
-    // Order of the actors in a collaboration is irrelevant
-    private static final Eq<Collaboration> collaborationEquals =
-            (c, c2) -> (c == c2)
-                    || (c.getActorA() == c2.getActorA() && c.getActorB() == c2.getActorB())
-                    || (c.getActorB() == c2.getActorA() && c.getActorA() == c2.getActorB());
-
     private final HashSet<Collaboration> collaborations;
     private final HashIndirizzamentoAperto<Person, HashSet<Person>> graph;
 
     public MovidaCollaborations() {
-        this.collaborations = new HashSet<>(collaborationHasher, collaborationEquals);
+        this.collaborations = new HashSet<>();
         this.graph = new HashIndirizzamentoAperto<>();
     }
 

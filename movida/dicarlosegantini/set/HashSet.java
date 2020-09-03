@@ -27,34 +27,23 @@
 
 package movida.dicarlosegantini.set;
 
-import movida.dicarlosegantini.Eq;
-import movida.dicarlosegantini.Hasher;
-
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 public final class HashSet<K> implements ISet<K> {
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
-    private final Hasher<K> hasher;
-    private final Eq<K> eq;
     private K[] keys;
     private int size;
 
-    public HashSet() {
-        this(K::hashCode, K::equals);
-    }
-
     @SuppressWarnings({"unchecked"})
-    public HashSet(final Hasher<K> hasher, final Eq<K> eq) {
-        this.hasher = hasher;
-        this.eq = eq;
+    public HashSet() {
         this.keys = (K[]) new Object[0];
         this.size = 0;
     }
 
     private long computeHash(final K key) {
-        final var hashCode = this.hasher.hash(key);
+        final var hashCode = key.hashCode();
         return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
@@ -179,7 +168,7 @@ public final class HashSet<K> implements ISet<K> {
                     deletedNotAlreadyEncountered = false;
                     continue;
                 }
-                if (this.eq.test(key, keyItem)) {
+                if (key.equals(keyItem)) {
                     return index;
                 }
             }
