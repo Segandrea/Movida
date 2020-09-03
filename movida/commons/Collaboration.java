@@ -13,8 +13,44 @@ public class Collaboration {
         this.movies = new HashSet<>();
     }
 
+    @Override
+    public int hashCode() {
+        // Hash of the actors in a collaboration combined with xor
+        return this.actorA.hashCode() ^ this.actorB.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object instanceof Collaboration) {
+            final var other = (Collaboration) object;
+
+            // Order of the actors in a collaboration is irrelevant
+            return (this.actorA == other.actorA && this.actorB == other.actorB) ||
+                    (this.actorB == other.actorA && this.actorA == other.actorB);
+        }
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Collaboration(" + this.actorA + ", " + this.actorB + ")";
+    }
+
     public void addMovie(final Movie movie) {
         this.movies.add(movie);
+    }
+
+    public void removeMovie(final Movie movie) {
+        this.movies.del(movie);
+    }
+
+    public Integer countMovies() {
+        return this.movies.size();
     }
 
     public Person getActorA() {
@@ -28,13 +64,5 @@ public class Collaboration {
     public Double getScore() {
         final double score = this.movies.stream().map(Movie::getVotes).reduce(0, Integer::sum);
         return score / this.movies.size();
-    }
-
-    public Integer countMovies() {
-        return this.movies.size();
-    }
-
-    public void removeMovie(final Movie movie) {
-        this.movies.del(movie);
     }
 }
