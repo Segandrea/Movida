@@ -29,8 +29,8 @@ public class Collaboration {
             final var other = (Collaboration) object;
 
             // Order of the actors in a collaboration is irrelevant
-            return (this.actorA == other.actorA && this.actorB == other.actorB) ||
-                    (this.actorB == other.actorA && this.actorA == other.actorB);
+            return (this.actorA.equals(other.actorA) && this.actorB.equals(other.actorB)) ||
+                    (this.actorB.equals(other.actorA) && this.actorA.equals(other.actorB));
         }
 
         return false;
