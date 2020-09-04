@@ -145,8 +145,13 @@ public final class HashSet<K> implements ISet<K> {
      */
     private int indexOf(final K key) {
         assert null != key;
-        final var hash = this.computeHash(key);
         final var capacity = this.capacity();
+
+        if (0 == capacity) {
+            return -1;
+        }
+
+        final var hash = this.computeHash(key);
         var emptyIndex = (int) (hash % capacity);
 
         if (!this.isEmpty()) {

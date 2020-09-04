@@ -37,11 +37,12 @@ class IMapTest {
     @Test
     void testHashIndirizzamentoAperto() {
         this.testAdd(new HashIndirizzamentoAperto<>());
-        this.testDel(new HashIndirizzamentoAperto<>());
+        this.testRemove(new HashIndirizzamentoAperto<>());
         this.testBasicOp(new HashIndirizzamentoAperto<>());
         this.testStream(new HashIndirizzamentoAperto<>());
         this.testClear(new HashIndirizzamentoAperto<>());
         this.testGetOrAdd(new HashIndirizzamentoAperto<>());
+        this.testEmptyMap(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new HashIndirizzamentoAperto<>());
         this.testToHashIndirizzamentoAperto(new ArrayOrdinato<>());
     }
@@ -49,16 +50,17 @@ class IMapTest {
     @Test
     void testArrayOrdinato() {
         this.testAdd(new ArrayOrdinato<>());
-        this.testDel(new ArrayOrdinato<>());
+        this.testRemove(new ArrayOrdinato<>());
         this.testBasicOp(new ArrayOrdinato<>());
         this.testStream(new ArrayOrdinato<>());
         this.testClear(new ArrayOrdinato<>());
         this.testGetOrAdd(new ArrayOrdinato<>());
+        this.testEmptyMap(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new ArrayOrdinato<>());
         this.testToArrayOrdinato(new HashIndirizzamentoAperto<>());
     }
 
-    void testDel(IMap<Integer, Integer> sut) {
+    void testRemove(final IMap<Integer, Integer> sut) {
         final int SIZE = 16;
         for (int i = 0; SIZE > i; ++i) {
             assertNull(sut.add(i, i));
@@ -99,7 +101,13 @@ class IMapTest {
         }
     }
 
-    void testAdd(IMap<Integer, Integer> sut) {
+    void testEmptyMap(final IMap<Integer, Integer> sut) {
+        assertTrue(sut.isEmpty());
+        assertNull(sut.get(-42));
+        assertFalse(sut.has(-42));
+    }
+
+    void testAdd(final IMap<Integer, Integer> sut) {
         for (int i = 0; 16 > i; ++i) {
             assertNull(sut.add(i, i));
             assertEquals(i + 1, sut.size());
@@ -123,7 +131,7 @@ class IMapTest {
         assertEquals(-1, sut.get(15));
     }
 
-    void testBasicOp(IMap<String, Integer> sut) {
+    void testBasicOp(final IMap<String, Integer> sut) {
         assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
         assertEquals(0, sut.capacity());
@@ -171,7 +179,7 @@ class IMapTest {
         assertEquals(99, sut.get("k1"));
     }
 
-    void testStream(IMap<Integer, Integer> sut) {
+    void testStream(final IMap<Integer, Integer> sut) {
         assertTrue(sut.isEmpty());
         assertEquals(0, sut.stream().count());
         for (int i = 1; 10 > i; ++i) {
@@ -185,7 +193,7 @@ class IMapTest {
         }
     }
 
-    void testToHashIndirizzamentoAperto(IMap<Integer, Integer> source) {
+    void testToHashIndirizzamentoAperto(final IMap<Integer, Integer> source) {
         var sut = HashIndirizzamentoAperto.from(source);
 
         assertTrue(sut.isEmpty());
@@ -207,7 +215,7 @@ class IMapTest {
         );
     }
 
-    void testToArrayOrdinato(IMap<Integer, Integer> source) {
+    void testToArrayOrdinato(final IMap<Integer, Integer> source) {
         var sut = ArrayOrdinato.from(source);
 
         assertTrue(sut.isEmpty());
@@ -229,7 +237,7 @@ class IMapTest {
         );
     }
 
-    void testClear(IMap<Integer, Integer> sut) {
+    void testClear(final IMap<Integer, Integer> sut) {
         assertTrue(sut.isEmpty());
         for (int i = 1; 10 > i; ++i) {
             sut.add(i, i * 10);
@@ -261,7 +269,7 @@ class IMapTest {
         );
     }
 
-    void testGetOrAdd(IMap<Integer, Integer> sut) {
+    void testGetOrAdd(final IMap<Integer, Integer> sut) {
         assertTrue(sut.isEmpty());
         assertEquals(0, sut.size());
 

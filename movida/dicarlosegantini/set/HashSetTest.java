@@ -67,7 +67,7 @@ class HashSetTest {
     }
 
     @Test
-    void del() {
+    void remove() {
         final var keys = new ArrayList<>();
         final int SIZE = 16;
 
@@ -137,5 +137,12 @@ class HashSetTest {
         assertTrue(this.sut.isEmpty());
         assertEquals(0, this.sut.size());
         assertEquals(0, this.sut.stream().count());
+    }
+
+    @Test
+    void emptySet() {
+        assertTrue(this.sut.isEmpty());
+        assertNull(this.sut.get(-42));
+        assertFalse(this.sut.has(-42));
     }
 }
