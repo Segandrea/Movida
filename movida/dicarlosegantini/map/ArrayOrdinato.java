@@ -27,6 +27,7 @@
 
 package movida.dicarlosegantini.map;
 
+import movida.dicarlosegantini.Entry;
 import movida.dicarlosegantini.array.DynamicArray;
 
 import java.util.function.Supplier;

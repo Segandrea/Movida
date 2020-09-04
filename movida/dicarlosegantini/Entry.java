@@ -25,7 +25,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package movida.dicarlosegantini.map;
+package movida.dicarlosegantini;
 
 public final class Entry<K, V> {
     public final K key;
@@ -34,5 +34,24 @@ public final class Entry<K, V> {
     public Entry(final K key, final V value) {
         this.key = key;
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object instanceof Entry) {
+            final var other = (Entry<?, ?>) object;
+            return this.key.equals(other.key) && this.value.equals(other.value);
+        }
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Entry(" + this.key + ", " + this.value + ")";
     }
 }

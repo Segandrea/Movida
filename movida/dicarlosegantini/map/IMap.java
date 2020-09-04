@@ -27,6 +27,8 @@
 
 package movida.dicarlosegantini.map;
 
+import movida.dicarlosegantini.Entry;
+
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
