@@ -31,8 +31,12 @@ import movida.commons.Collaboration;
 import movida.commons.IMovidaCollaborations;
 import movida.commons.Movie;
 import movida.commons.Person;
+import movida.dicarlosegantini.array.DynamicArray;
 import movida.dicarlosegantini.map.HashIndirizzamentoAperto;
 import movida.dicarlosegantini.set.HashSet;
+
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 public final class MovidaCollaborations implements IMovidaCollaborations {
     private final HashSet<Collaboration> collaborations;
@@ -83,16 +87,64 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
     @Override
     public Person[] getDirectCollaboratorsOf(final Person actor) {
         final var collaborators = this.graph.get(actor);
-        return (null != collaborators) ? collaborators.stream().toArray(Person[]::new) : null;
+        return (null != collaborators) ? collaborators.stream().toArray(Person[]::new) : new Person[0];
     }
 
     @Override
     public Person[] getTeamOf(final Person actor) {
-        return new Person[0];
+        final var actorsToVisit = new LinkedList<Person>();
+        final var markedActors = new HashSet<Person>();
+        final var team = new DynamicArray<Person>();
+
+        markedActors.add(actor);
+        actorsToVisit.addLast(actor);
+
+        while (!actorsToVisit.isEmpty()) {
+            final var currentActor = actorsToVisit.removeFirst();
+            team.append(currentActor);
+
+            for (final var collaborator : this.getDirectCollaboratorsOf(currentActor)) {
+                if (markedActors.add(collaborator)) {
+                    actorsToVisit.addLast(collaborator);
+                }
+            }
+        }
+
+        return team.stream().toArray(Person[]::new);
     }
 
     @Override
     public Collaboration[] maximizeCollaborationsInTheTeamOf(final Person actor) {
-        return new Collaboration[0];
+        final var actorsBestScore = new HashIndirizzamentoAperto<Person, Double>();
+        final var bestCollaborations = new HashSet<Collaboration>();
+        final var q = new PriorityQueue<Entry<Person, Double>>((e1, e2) -> -(e1.value.compareTo(e2.value)));
+
+        actorsBestScore.add(actor, 0.0);
+        q.add(new Entry<>(actor, 0.0));
+
+        while (!q.isEmpty()) {
+            final var currentActor = q.remove().key;
+
+            for (final var colleague : this.getDirectCollaboratorsOf(currentActor)) {
+                final var colleagueScore = actorsBestScore.get(colleague);
+                final var collaboration = this.collaborations.get(new Collaboration(currentActor, colleague));
+                assert null != collaboration;
+
+                if (null == colleagueScore) {
+                    q.add(new Entry<>(colleague, collaboration.getScore()));
+
+                    actorsBestScore.add(colleague, collaboration.getScore());
+                    bestCollaborations.add(collaboration);
+                } else if (collaboration.getScore() > colleagueScore) {
+                    q.remove(new Entry<>(colleague, colleagueScore));
+                    q.add(new Entry<>(colleague, collaboration.getScore()));
+
+                    actorsBestScore.add(colleague, collaboration.getScore());
+                    bestCollaborations.add(collaboration);
+                }
+            }
+        }
+
+        return bestCollaborations.stream().toArray(Collaboration[]::new);
     }
 }
