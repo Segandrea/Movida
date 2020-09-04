@@ -283,10 +283,10 @@ public final class MovidaCore implements IMovidaConfig, IMovidaDB, IMovidaSearch
             this.deleteMovieInYear(movie, movie.getYear());
 
             final var cast = movie.getCast();
-            for (int x = 0; x < cast.length; ++x) {
+            for (int x = 0; cast.length > x; ++x) {
                 this.deleteMovieStarredBy(movie, cast[x]);
 
-                for (int y = x + 1; y < cast.length; ++y) {
+                for (int y = x + 1; cast.length > y; ++y) {
                     this.collaborations.removeCollaboration(movie, cast[x], cast[y]);
                 }
             }
