@@ -101,11 +101,11 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
 
         while (!actorsToVisit.isEmpty()) {
             final var currentActor = actorsToVisit.removeFirst();
-            team.append(currentActor);
 
             for (final var collaborator : this.getDirectCollaboratorsOf(currentActor)) {
                 if (markedActors.add(collaborator)) {
                     actorsToVisit.addLast(collaborator);
+                    team.append(collaborator);
                 }
             }
         }
