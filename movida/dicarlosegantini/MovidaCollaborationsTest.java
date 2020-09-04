@@ -187,4 +187,203 @@ class MovidaCollaborationsTest {
                 this.sut.maximizeCollaborationsInTheTeamOf(new Person("Jodie Foster"))
         );
     }
+
+    @Test
+    void removeCollaboration() {
+        {
+            final var movie = this.MOVIES[0];
+            final var cast = movie.getCast();
+
+            for (int a = 0; a < cast.length; ++a) {
+                for (int b = a + 1; b < cast.length; ++b) {
+                    this.sut.removeCollaboration(movie, cast[a], cast[b]);
+                }
+            }
+
+            // getDirectCollaboratorsOf
+            assertArrayEquals(
+                    makePeople(new String[]{"Uma Thurman"}),
+                    this.sut.getDirectCollaboratorsOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{"John Travolta"}),
+                    this.sut.getDirectCollaboratorsOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Jodie Foster",
+                            "Cybill Shepherd",
+                            "Albert Brooks",
+                    }),
+                    this.sut.getDirectCollaboratorsOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Albert Brooks",
+                            "Robert De Niro",
+                            "Cybill Shepherd",
+                    }),
+                    this.sut.getDirectCollaboratorsOf(new Person("Jodie Foster"))
+            );
+
+            // getTeamOf
+            assertArrayEquals(
+                    makePeople(new String[]{"Uma Thurman"}),
+                    this.sut.getTeamOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{"John Travolta"}),
+                    this.sut.getTeamOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Jodie Foster",
+                            "Cybill Shepherd",
+                            "Albert Brooks",
+                    }),
+                    this.sut.getTeamOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Albert Brooks",
+                            "Robert De Niro",
+                            "Cybill Shepherd",
+                    }),
+                    this.sut.getTeamOf(new Person("Jodie Foster"))
+            );
+
+            // maximizeCollaborationsInTheTeamOf
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("John Travolta"), new Person("Uma Thurman"))
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("John Travolta"), new Person("Uma Thurman"))
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("Robert De Niro"), new Person("Cybill Shepherd")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Albert Brooks")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Jodie Foster")),
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("Jodie Foster"), new Person("Albert Brooks")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Jodie Foster")),
+                            new Collaboration(new Person("Jodie Foster"), new Person("Cybill Shepherd")),
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Jodie Foster"))
+            );
+        }
+        {
+            final var movie = this.MOVIES[2];
+            final var cast = movie.getCast();
+
+            for (int a = 0; a < cast.length; ++a) {
+                for (int b = a + 1; b < cast.length; ++b) {
+                    this.sut.removeCollaboration(movie, cast[a], cast[b]);
+                }
+            }
+
+            // getDirectCollaboratorsOf
+            assertArrayEquals(
+                    new Person[0],
+                    this.sut.getDirectCollaboratorsOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    new Person[0],
+                    this.sut.getDirectCollaboratorsOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Jodie Foster",
+                            "Cybill Shepherd",
+                            "Albert Brooks",
+                    }),
+                    this.sut.getDirectCollaboratorsOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Albert Brooks",
+                            "Robert De Niro",
+                            "Cybill Shepherd",
+                    }),
+                    this.sut.getDirectCollaboratorsOf(new Person("Jodie Foster"))
+            );
+
+            // getTeamOf
+            assertArrayEquals(
+                    new Person[0],
+                    this.sut.getTeamOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    new Person[0],
+                    this.sut.getTeamOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Jodie Foster",
+                            "Cybill Shepherd",
+                            "Albert Brooks",
+                    }),
+                    this.sut.getTeamOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    makePeople(new String[]{
+                            "Albert Brooks",
+                            "Robert De Niro",
+                            "Cybill Shepherd",
+                    }),
+                    this.sut.getTeamOf(new Person("Jodie Foster"))
+            );
+
+            // maximizeCollaborationsInTheTeamOf
+            assertArrayEquals(
+                    new Collaboration[0],
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("John Travolta"))
+            );
+            assertArrayEquals(
+                    new Collaboration[0],
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Uma Thurman"))
+            );
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("Robert De Niro"), new Person("Cybill Shepherd")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Albert Brooks")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Jodie Foster")),
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Robert De Niro"))
+            );
+            assertArrayEquals(
+                    new Collaboration[]{
+                            new Collaboration(new Person("Jodie Foster"), new Person("Albert Brooks")),
+                            new Collaboration(new Person("Robert De Niro"), new Person("Jodie Foster")),
+                            new Collaboration(new Person("Jodie Foster"), new Person("Cybill Shepherd")),
+                    },
+                    this.sut.maximizeCollaborationsInTheTeamOf(new Person("Jodie Foster"))
+            );
+        }
+        {
+            final var movie = this.MOVIES[1];
+            final var cast = movie.getCast();
+
+            for (int a = 0; a < cast.length; ++a) {
+                for (int b = a + 1; b < cast.length; ++b) {
+                    this.sut.removeCollaboration(movie, cast[a], cast[b]);
+                }
+            }
+
+            final var actor = cast[0];
+            assertEquals(0, this.sut.getDirectCollaboratorsOf(actor).length);
+            assertEquals(0, this.sut.maximizeCollaborationsInTheTeamOf(actor).length);
+            assertEquals(0, this.sut.getTeamOf(actor).length);
+        }
+    }
 }
