@@ -29,6 +29,14 @@ package movida.dicarlosegantini.sort;
 
 import java.util.Comparator;
 
+/**
+ * Sorting algorithm: Selection sort.
+ * <p>
+ * <pre>
+ * Time complexity: O(n^2)
+ * </pre>
+ * <p>
+ */
 public final class SelectionSort implements ISort {
     private static SelectionSort instance = null;
 

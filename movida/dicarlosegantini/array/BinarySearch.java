@@ -32,8 +32,14 @@ import java.util.Comparator;
 /**
  * Binary search the given item in the array.
  * <p>
+ * <pre>
+ * Time complexity: O(log(n))
+ * </pre>
+ * <p>
+ * <pre>
  * present -> return the index of the item in the array (index is in range [0, length - 1]).
  * absent  -> return the index in which the item would be placed in the array (index is in range [-1, -length]).
+ * </pre>
  */
 public final class BinarySearch {
     private BinarySearch() {}
@@ -85,6 +91,7 @@ public final class BinarySearch {
 
         // String::compareTo may return values outside -1, 0, 1.
         if (0 > result) {
+            // param `to` is incremented by one because search expects an exclusive end index
             return search(array, middle + 1, to + 1, item, comparator);
         } else if (0 < result) {
             return search(array, from, middle, item, comparator);

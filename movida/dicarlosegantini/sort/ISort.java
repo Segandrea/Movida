@@ -29,6 +29,9 @@ package movida.dicarlosegantini.sort;
 
 import java.util.Comparator;
 
+/**
+ * Interface made to abstract sorting algorithms.
+ */
 public interface ISort {
     default <T extends Comparable<T>> void sort(T[] array) {
         this.sort(array, 0, array.length, T::compareTo);

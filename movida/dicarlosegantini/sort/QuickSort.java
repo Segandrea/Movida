@@ -30,6 +30,16 @@ package movida.dicarlosegantini.sort;
 import java.util.Comparator;
 import java.util.Random;
 
+/**
+ * Sorting algorithm: Quicksort.
+ * Implemented with randomized pivot.
+ * <p>
+ * <pre>
+ * Time complexity: O(n*log(n)) due to randomization of the pivot.
+ * Otherwise, without randomization: O(n^2) in the worst case.
+ * </pre>
+ * <p>
+ */
 public final class QuickSort implements ISort {
     private static final Random rand = new Random();
     private static QuickSort instance = null;
@@ -52,13 +62,18 @@ public final class QuickSort implements ISort {
 
     private static <T> int partition(T[] array, final int firstIndex, final int lastIndex,
                                      final Comparator<T> comparator) {
+        // Pivot will always be in the first position.
+
         // swap firstIndex with a random pivot to optimize the quicksort
         swap(array, firstIndex, rand.nextInt(lastIndex - firstIndex) + firstIndex);
 
         final var pivotValue = array[firstIndex];
+        // because of decrement in the while
         var sup = lastIndex + 1;
+        // because of increment in the while
         var inf = firstIndex - 1;
 
+        // When inf match or goes over sup, the while ends.
         while (true) {
             do {
                 inf += 1;

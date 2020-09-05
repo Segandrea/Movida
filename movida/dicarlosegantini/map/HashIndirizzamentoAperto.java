@@ -35,7 +35,14 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * A map implementation using hashing and linear probing.
+ *
+ * @param <K> Type of the keys.
+ * @param <V> Type of the values.
+ */
 public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
+    // Special marker to signal a deleted value.
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
     private V[] values;
@@ -49,6 +56,19 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         this.size = 0;
     }
 
+    /**
+     * Makes an HashIndirizzamentoAperto from another map.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     *
+     * @param map  The instance of another map.
+     * @param <K1> The type of the keys, must be comparable.
+     * @param <V1> The type of the values.
+     * @return An HashIndirizzamentoAperto made from the specified map.
+     */
     public static <K1, V1> IMap<K1, V1> from(final IMap<K1, V1> map) {
         final var newInstance = new HashIndirizzamentoAperto<K1, V1>();
         newInstance.reserve(map.size());
@@ -56,11 +76,36 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return newInstance;
     }
 
+    /**
+     * Computes hashes using java's hashCode which has the problem of giving a signed hash.
+     * This problem is solved making the abs of the hashCode and adding to it the biggest positive Integer
+     * in case the hashCode was negative, returning the result as a long.
+     * In this way we can avoid collisions while keeping the hash positive.
+     *
+     * @param key The item to hash.
+     * @return The hash of the item.
+     */
     private long computeHash(final K key) {
         final var hashCode = key.hashCode();
         return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
+    /**
+     * Adds a value into the map, with the specified key.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when the (key-value) is not in the map and an expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param key   The key associated to the value to add.
+     * @param value The value to add.
+     * @return if there where already a value associated with the specified key, it returns its value, otherwise null.
+     */
     @Override
     public V add(final K key, final V value) {
         assert null != key;
@@ -69,6 +114,22 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return this.rawAdd(key, value);
     }
 
+    /**
+     * Gets the value with the specified key if present, otherwise it adds it.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when the (key-value) is not in the map and an expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param key      The key associated to the value to get.
+     * @param supplier The function used to create the value if not present in the map.
+     * @return The value associated with the specified key if present, the supplied value otherwise.
+     */
     @Override
     public V getOrAdd(final K key, final Supplier<V> supplier) {
         assert null != key;
@@ -92,6 +153,18 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return value;
     }
 
+    /**
+     * Gets the value with the specified key, null otherwise.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The key associated to the value to get.
+     * @return The value associated with the specified key if present, null otherwise.
+     */
     @Override
     public V get(final K key) {
         assert null != key;
@@ -99,6 +172,18 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return (0 <= index) ? this.values[index] : null;
     }
 
+    /**
+     * Removes the value with the specified key.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The key associated to the value to remove.
+     * @return The removed value if present, null otherwise.
+     */
     @Override
     public V remove(final K key) {
         assert null != key;
@@ -115,12 +200,34 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return null;
     }
 
+    /**
+     * Checks If the specified key is in the map.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The key to search in the map.
+     * @return True if the key is found, false otherwise.
+     */
     @Override
     public boolean has(final K key) {
         assert null != key;
         return 0 <= this.indexOf(key);
     }
 
+    /**
+     * Steams the keys of the map.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     *
+     * @return A stream of the keys in the map.
+     */
     @Override
     public Stream<K> keys() {
         return Arrays.stream(this.keys)
@@ -128,6 +235,16 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                 .limit(this.size);
     }
 
+    /**
+     * Steams the values of the map.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     *
+     * @return A stream of the values in the map.
+     */
     @Override
     public Stream<V> values() {
         return Arrays.stream(this.values)
@@ -135,6 +252,16 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                 .limit(this.size);
     }
 
+    /**
+     * Streams the pairs key-value of the map.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     *
+     * @return A stream of entries made of the key-value pairs.
+     */
     @Override
     public Stream<Entry<K, V>> stream() {
         return IntStream
@@ -147,6 +274,20 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
                 .mapToObj(i -> new Entry<>(this.keys[i], this.values[i]));
     }
 
+    /**
+     * If needed, expands the map to support at least additionalItems more.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param additionalItems Minimum number of additional items that the map must be able to accommodate.
+     */
     @SuppressWarnings({"unchecked"})
     public void reserve(final int additionalItems) {
         assert 0 <= additionalItems;
@@ -175,16 +316,44 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         }
     }
 
+    /**
+     * Gets the capacity of the map.
+     * <p>
+     * <pre>
+     * Time complexity: O(1)
+     * </pre>
+     * <p>
+     *
+     * @return The capacity of the map.
+     */
     @Override
     public int capacity() {
         return this.keys.length;
     }
 
+    /**
+     * Gets the size of the map.
+     * <p>
+     * <pre>
+     * Time complexity: O(1)
+     * </pre>
+     * <p>
+     *
+     * @return The size of the map.
+     */
     @Override
     public int size() {
         return this.size;
     }
 
+    /**
+     * Clears the map making it empty.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     */
     @Override
     public void clear() {
         Arrays.fill(this.values, null);
@@ -193,8 +362,20 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
     }
 
     /*
+     * Gets the index of a specified key if present, otherwise it indicates where to place it.
+     * <pre>
      * present -> return the index of the key in the array (index is in range [0, length - 1]).
      * absent  -> return the index in which the key would be placed in the array (index is in range [-1, -length]).
+     * </pre>
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The key to locate.
+     * @return A positive index if the key is in the map, a negative index if the key is not in the map.
      */
     private int indexOf(final K key) {
         assert null != key;
@@ -235,6 +416,14 @@ public final class HashIndirizzamentoAperto<K, V> implements IMap<K, V> {
         return -(emptyIndex + 1);
     }
 
+    /*
+     * Adds a (key-value) into the map.
+     *
+     * Note.1: this add does not call reserve method.
+     * Note.2:
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     */
     private V rawAdd(final K key, final V value) {
         assert null != key;
         assert null != value;

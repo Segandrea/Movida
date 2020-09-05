@@ -27,6 +27,12 @@
 
 package movida.dicarlosegantini;
 
+/**
+ * A pair of items, one is the key while the other is its associated value.
+ *
+ * @param <K> Type of the key.
+ * @param <V> Type of the value.
+ */
 public final class Entry<K, V> {
     public final K key;
     public final V value;

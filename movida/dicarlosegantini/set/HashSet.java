@@ -30,7 +30,13 @@ package movida.dicarlosegantini.set;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+/**
+ * Hashset implementation using linear probing.
+ *
+ * @param <K> Type of the items in the hashset
+ */
 public final class HashSet<K> implements ISet<K> {
+    // Special marker to signal a deleted value.
     @SuppressWarnings("unchecked")
     private final K DELETED = (K) new Object();
     private K[] keys;
@@ -42,11 +48,36 @@ public final class HashSet<K> implements ISet<K> {
         this.size = 0;
     }
 
+    /**
+     * Computes hashes using java's hashCode which has the problem of giving a signed hash.
+     * This problem is solved making the abs of the hashCode and adding to it the biggest positive Integer
+     * in case the hashCode was negative, returning the result as a long.
+     * In this way we can avoid collisions while keeping the hash positive.
+     *
+     * @param key The item to hash.
+     * @return The hash of the item.
+     */
     private long computeHash(final K key) {
         final var hashCode = key.hashCode();
         return ((long) Math.abs(hashCode)) + ((0 > hashCode) ? ((long) (Integer.MAX_VALUE)) : 0L);
     }
 
+    /**
+     * Gets the specified item if it is in the set, otherwise adds the item into the set and returns it.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when the item is not in the set and an expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param key The item to get/add.
+     * @return The item in the set.
+     * @implNote This function calls a reserve even if there's no need to add.
+     */
     public K getOrAdd(final K key) {
         assert null != key;
         this.reserve(1);
@@ -54,6 +85,18 @@ public final class HashSet<K> implements ISet<K> {
         return (0 > index) ? this.keys[-(index + 1)] : this.keys[index];
     }
 
+    /**
+     * Gets the specified item if present.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The item to get.
+     * @return The specified item if found, null otherwise.
+     */
     public K get(final K key) {
         assert null != key;
         final var index = this.indexOf(key);
@@ -65,6 +108,21 @@ public final class HashSet<K> implements ISet<K> {
         return this.keys[index];
     }
 
+    /**
+     * Adds an item into the set.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param key The item to add.
+     * @return True if the item is added, false if the item was already in the set.
+     */
     @Override
     public boolean add(final K key) {
         assert null != key;
@@ -72,6 +130,18 @@ public final class HashSet<K> implements ISet<K> {
         return 0 > this.rawAdd(key);
     }
 
+    /**
+     * Removes an item from the set.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The item to remove.
+     * @return True if the item is removed, false if the item is not in the set.
+     */
     @Override
     public boolean remove(final K key) {
         assert null != key;
@@ -86,12 +156,34 @@ public final class HashSet<K> implements ISet<K> {
         return false;
     }
 
+    /**
+     * Checks if the item is already in the set.
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The item to check for.
+     * @return True if the item is in the set, false if the item is not in the set.
+     */
     @Override
     public boolean has(final K key) {
         assert null != key;
         return 0 <= this.indexOf(key);
     }
 
+    /**
+     * Streams the items in the set.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     *
+     * @return A stream of the items in the set.
+     */
     @Override
     public Stream<K> stream() {
         return Arrays.stream(this.keys)
@@ -99,6 +191,21 @@ public final class HashSet<K> implements ISet<K> {
                 .limit(this.size);
     }
 
+    /**
+     * If needed, expands the set to support at least additionalItems more.
+     * <p>
+     * <pre>
+     *                   worst   best
+     * Time complexity:  O(n)    O(1)
+     *
+     * Worst case: when expansion + rehashing is needed.
+     * Best case: when expansion + rehashing is not needed.
+     * </pre>
+     * <p>
+     *
+     * @param additionalItems Minimum number of additional items that the set must be able to accommodate.
+     * @implNote To prevent worst case we ensure that the load factor of the set is below 0.7.
+     */
     @SuppressWarnings({"unchecked"})
     public void reserve(final int additionalItems) {
         assert 0 <= additionalItems;
@@ -123,16 +230,44 @@ public final class HashSet<K> implements ISet<K> {
         }
     }
 
+    /**
+     * Gets the capacity of the set.
+     * <p>
+     * <pre>
+     * Time complexity: O(1)
+     * </pre>
+     * <p>
+     *
+     * @return The capacity of the set.
+     */
     @Override
     public int capacity() {
         return this.keys.length;
     }
 
+    /**
+     * Gets the size of the set.
+     * <p>
+     * <pre>
+     * Time complexity: O(1)
+     * </pre>
+     * <p>
+     *
+     * @return The size of the set.
+     */
     @Override
     public int size() {
         return this.size;
     }
 
+    /**
+     * Clears the set making it empty.
+     * <p>
+     * <pre>
+     * Time complexity: O(n)
+     * </pre>
+     * <p>
+     */
     @Override
     public void clear() {
         Arrays.fill(this.keys, null);
@@ -140,8 +275,20 @@ public final class HashSet<K> implements ISet<K> {
     }
 
     /*
+     * Gets the index of a specified item if present, otherwise it indicates where to place it.
+     * <pre>
      * present -> return the index of the key in the array (index is in range [0, length - 1]).
      * absent  -> return the index in which the key would be placed in the array (index is in range [-1, -length]).
+     * </pre>
+     * <p>
+     * <pre>
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     * </pre>
+     * <p>
+     *
+     * @param key The item to locate.
+     * @return A positive index if the item is in the set, a negative index if the item is not in the set.
      */
     private int indexOf(final K key) {
         assert null != key;
@@ -182,6 +329,14 @@ public final class HashSet<K> implements ISet<K> {
         return -(emptyIndex + 1);
     }
 
+    /*
+     * Adds an item into the set.
+     *
+     * Note.1: this add does not call reserve method.
+     * Note.2:
+     *                  worst                              best
+     * Time complexity: O(n) -> due to linear probing      O(1)
+     */
     private int rawAdd(final K key) {
         assert null != key;
         final var index = this.indexOf(key);

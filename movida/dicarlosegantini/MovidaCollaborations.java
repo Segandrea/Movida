@@ -90,6 +90,12 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
         return (null != collaborators) ? collaborators.stream().toArray(Person[]::new) : new Person[0];
     }
 
+    /*
+     * Adapted version of BFS
+     *
+     * Time complexity: O(n + m) where n: number of actors
+     *                                 m: number of collaborations
+     */
     @Override
     public Person[] getTeamOf(final Person actor) {
         final var actorsToVisit = new LinkedList<Person>();
@@ -113,6 +119,12 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
         return team.stream().toArray(Person[]::new);
     }
 
+    /*
+     * Adapted version of MST
+     *
+     * Time complexity: O(n^2) or O(nm) where n: number of actors
+     *                                        m: number of collaborations
+     */
     @Override
     public Collaboration[] maximizeCollaborationsInTheTeamOf(final Person actor) {
         final var actorsBestScore = new HashIndirizzamentoAperto<Person, Double>();
@@ -130,13 +142,15 @@ public final class MovidaCollaborations implements IMovidaCollaborations {
                 final var collaboration = this.collaborations.get(new Collaboration(currentActor, colleague));
                 assert null != collaboration;
 
-                if (null == colleagueScore) {
+                if (null == colleagueScore) { // O(n) where n: number of actors
                     q.add(new Entry<>(colleague, collaboration.getScore()));
 
                     actorsBestScore.add(colleague, collaboration.getScore());
                     bestCollaborations.add(collaboration);
-                } else if (collaboration.getScore() > colleagueScore) {
+                } else if (collaboration.getScore() > colleagueScore) { // O(m) where m: number of collaborations
+                    // q.remove(obj) takes O(n) to find the obj and O(log(n)) to remove it where n: number of actors
                     q.remove(new Entry<>(colleague, colleagueScore));
+                    // q.add(obj) takes O(log(n))
                     q.add(new Entry<>(colleague, collaboration.getScore()));
 
                     actorsBestScore.add(colleague, collaboration.getScore());
