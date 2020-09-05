@@ -30,5 +30,5 @@ We defined the IMap interface in order to abstract the actual data structure use
 
 To reduce the complexity of MovidaCore class, we defined MovidaPersistence and MovidaCollaborations classes to which MovidaCore delegates the following operations:
 
-**MovidaPersistence:** Responsible for the file-related operations (load/save from/to file).
+**MovidaPersistence:** Responsible for the file-related operations (load/save from/to file).  
 **MovidaCollaborations:** Implementation of IMovidaCollaborations.
